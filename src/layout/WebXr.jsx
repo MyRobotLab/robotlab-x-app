@@ -1,24 +1,13 @@
-import React, { useState, useContext } from "react"
-import { Typography, useTheme } from "@mui/material"
-import { ReadyState } from 'react-use-websocket'
-import { DataGrid } from "@mui/x-data-grid"
-import { tokens } from "../theme"
-import { mockDataTeam } from "../data/mockData"
-import ServiceTabs from "../components/ServiceTabs"
-import AdminPanelSettingsOutlinedIcon from "@mui/icons-material/AdminPanelSettingsOutlined"
-import LockOpenOutlinedIcon from "@mui/icons-material/LockOpenOutlined"
-import SecurityOutlinedIcon from "@mui/icons-material/SecurityOutlined"
-import Header from "../components/Header"
+import React, { useState, useEffect, useContext } from "react"
+import TextareaAutosize from "@mui/base/TextareaAutosize"
+import { ReadyState } from "react-use-websocket"
 import { RuntimeContext } from "../framework/RuntimeContext"
 import { JSONTree } from "react-json-tree"
-
-import { createRoot } from 'react-dom/client'
-import { Interactive, XR, Controllers, VRButton } from '@react-three/xr'
-import { Sky, Text } from '@react-three/drei'
-import '@react-three/fiber'
+import { Interactive, XR, Controllers, VRButton, useController } from "@react-three/xr"
+import { Sky, Text } from "@react-three/drei"
+import "@react-three/fiber"
 // import './styles.css'
-import { Canvas } from '@react-three/fiber'
-
+import { Canvas } from "@react-three/fiber"
 
 function Floor() {
   return (
@@ -48,9 +37,24 @@ function Button(props) {
   }
 
   return (
-    <Interactive onSelect={onSelect} onHover={() => setHover(true)} onBlur={() => setHover(false)}>
-      <Box color={color} scale={hover ? [1.5, 1.5, 1.5] : [1, 1, 1]} size={[0.4, 0.1, 0.1]} {...props}>
-        <Text position={[0, 0, 0.06]} fontSize={0.05} color="#000" anchorX="center" anchorY="middle">
+    <Interactive
+      onSelect={onSelect}
+      onHover={() => setHover(true)}
+      onBlur={() => setHover(false)}
+    >
+      <Box
+        color={color}
+        scale={hover ? [1.5, 1.5, 1.5] : [1, 1, 1]}
+        size={[0.4, 0.1, 0.1]}
+        {...props}
+      >
+        <Text
+          position={[0, 0, 0.06]}
+          fontSize={0.05}
+          color="#000"
+          anchorX="center"
+          anchorY="middle"
+        >
           Hello react-xr!
         </Text>
       </Box>
@@ -78,13 +82,18 @@ const WebXr = () => {
     setMessageInput("")
   }
 
-  const theme = useTheme()
-  const colors = tokens(theme.palette.mode)
-  
 
   return (
-      
     <>
+      <img
+        alt="disconnected"
+        src={
+          readyState === ReadyState.OPEN
+            ? `../../assets/green.png`
+            : `../../assets/red.png`
+        }
+      />
+
       <VRButton />
       <Canvas>
         <XR>
