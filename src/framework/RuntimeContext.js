@@ -1,5 +1,6 @@
 import React, { createContext, useEffect, useCallback, useContext, useState } from 'react'
 import useWebSocket, { ReadyState } from 'react-use-websocket'
+// const { URL } = require('url');
 
 // create the context
 export const  RuntimeContext = createContext({})
@@ -8,12 +9,28 @@ export const  RuntimeContext = createContext({})
 
 // create a provider component
 export const  RuntimeContextProvider = ({ children }) => {
+  
+  var url = require('url');
+  let urlParts = url.parse(window.location.href)
+  
+  // Extract the scheme, host, and port from the parsed URL
+  const scheme = urlParts.protocol.replace(':', '');
+  const hostname = urlParts.hostname;
+  const port = urlParts.port || (scheme === 'https' ? '443' : '80');
+  const wsSchema = (scheme === 'https')? 'wss':'ws'
+  // const wsUrl = `${wsSchema}://${host}:${port}/api/messages?user=root&pwd=pwd&session_id=2309adf3dlkdk&id=webgui-client`
+  // FIXME - certainly cannot be hardcoded
+  const wsUrl = `wss://${hostname}:8443/api/messages?user=root&pwd=pwd&session_id=2309adf3dlkdk&id=webgui-client`
+  
+  console.log(wsUrl)
+  
   const [registry, setRegistry] = useState({})
   // const { lastMessage, readyState, message, setMessage} = useWebSocket('ws://localhost:8888/api/messages?user=root&pwd=pwd&session_id=2309adf3dlkdk&id=webgui-client')
   // const [socketUrl, setSocketUrl] = useState('ws://localhost:8888/api/messages?user=root&pwd=pwd&session_id=2309adf3dlkdk&id=webgui-client')
   // const [message, setMessage] = useState('')
   const [message, setMessage] = useState('')
-  const [socketUrl, setSocketUrl] = useState('wss://localhost:5000/api/messages?user=root&pwd=pwd&session_id=2309adf3dlkdk&id=webgui-client')
+//  const [socketUrl, setSocketUrl] = useState('wss://localhost:8443/api/messages?user=root&pwd=pwd&session_id=2309adf3dlkdk&id=webgui-client')
+  const [socketUrl, setSocketUrl] = useState(wsUrl)
   const [messageHistory, setMessageHistory] = useState([])
   const { sendMessage, lastMessage, readyState } = useWebSocket(socketUrl)
 
@@ -36,11 +53,6 @@ export const  RuntimeContextProvider = ({ children }) => {
       setMessageHistory((prev) => prev.concat(lastMessage))
     }
   }, [lastMessage, setMessageHistory])
-
-  const handleClickChangeSocketUrl = useCallback(
-    () => setSocketUrl('ws://localhost:8888/api/messages?user=root&pwd=pwd&session_id=2309adf3dlkdk&id=webgui-client'),
-    []
-  )
 
   const handleClickSendMessage = useCallback(() => sendMessage('Hello'), [])
 

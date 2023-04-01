@@ -1,7 +1,6 @@
 import React, { useState, useEffect, useContext } from "react"
 import TextareaAutosize from "@mui/base/TextareaAutosize"
 import { ReadyState } from "react-use-websocket"
-import { WebXrContext } from "../framework/WebXrContext"
 import { get } from "lodash"
 
 import { VRButton, XR, Hands, useXR, Interactive, useHitTest, useController, Controllers } from "@react-three/xr"
@@ -218,8 +217,7 @@ const WebXr = () => {
     setValue(newValue)
   }
 
-  const { registry, updateUser } = useContext(WebXrContext)
-  const { message, sendMessage, readyState } = useContext(WebXrContext)
+  const { message, sendMessage, readyState } = useContext(RuntimeContext)
   const [messageInput, setMessageInput] = useState("")
 
   const handleMessageChange = (event) => {
