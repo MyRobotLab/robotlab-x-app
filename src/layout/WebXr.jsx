@@ -188,10 +188,25 @@ function ControllerData() {
       // console.info(`right ${p.x} ${p.y} ${p.z}`)
     }
 
+    // player?.children?.forEach((child) => {
+    //   const p = child.position
+    //   const r = child.rotation
+    //   console.info(`child ${JSON.stringify(child)}`)
+    //   // console.info(`${child.name} ${p.x} ${p.y} ${p.z}`)
+    //   let pose = getPose(child.name, p, r, mappings)
+    //   if (deltaPose(pose, lastPoses[pose.name], threshold)) {
+    //     sendTo("webxr", "publishPose", pose)
+    //   }
+    //   lastPoses[pose.name] = pose
+    //   // console.log(child);
+    // }
+    // )
+
     // headset controller 0
     if (player.children[0]) {
-      const p = player.children[0].position
-      const r = player.children[0].rotation
+      // head
+      let p = player.children[0].position
+      let r = player.children[0].rotation
       // console.info(`headset ${p.x} ${p.y} ${p.z}`)
       // FIXME - send('method', data)
       let pose = getPose("head", p, r, mappings)
@@ -201,9 +216,25 @@ function ControllerData() {
       }
       lastPoses[pose.name] = pose
 
+
+      // right
+      // p = player.children[1].position
+      // r = player.children[1].rotation
+      // // console.info(`headset ${p.x} ${p.y} ${p.z}`)
+      // // FIXME - send('method', data)
+      // pose = getPose("right", p, r, mappings)
+
+      // if (deltaPose(pose, lastPoses[pose.name], threshold)) {
+      //   sendTo("webxr", "publishPose", pose)
+      // }
+      // lastPoses[pose.name] = pose
+      
+
+      
+
       // sendMessage(player.children[0].position)
     }
-  })
+   })
   // console.info(player.rotation)
 
   return null
