@@ -1,147 +1,11 @@
-import React, { useState, useEffect, useContext } from "react"
-import TextareaAutosize from "@mui/base/TextareaAutosize"
-import { ReadyState } from "react-use-websocket"
-import { get } from "lodash"
-
-import { VRButton, XR, Hands, useXR, Interactive, useHitTest, useController, Controllers } from "@react-three/xr"
-import { Sky, Text } from "@react-three/drei"
-import { useFrame, Canvas } from "@react-three/fiber"
-
-import { FrameRate } from "../components/webxr/FrameRate"
-
+import React, { useRef, useContext } from "react"
 import { RuntimeContext } from "../framework/RuntimeContext"
 
-// FIXME - make this a "service" page
-
-function Floor() {
-  return (
-    <mesh rotation={[-Math.PI / 2, 0, 0]}>
-      <planeGeometry args={[40, 40]} />
-      <meshStandardMaterial color="#666" />
-    </mesh>
-  )
-}
-
-function Box({ color, size, scale, children, ...rest }) {
-  return (
-    <mesh scale={scale} {...rest}>
-      <boxGeometry args={size} />
-      <meshPhongMaterial color={color} />
-      {children}
-    </mesh>
-  )
-}
-
-function Button(props) {
-  const [hover, setHover] = useState(false)
-  const [color, setColor] = useState(0x123456)
-
-  const onSelect = () => {
-    setColor((Math.random() * 0xffffff) | 0)
-  }
-
-  return (
-    <Interactive onSelect={onSelect} onHover={() => setHover(true)} onBlur={() => setHover(false)}>
-      <Box color={color} scale={hover ? [1.5, 1.5, 1.5] : [1, 1, 1]} size={[0.4, 0.1, 0.1]} {...props}>
-        <Text position={[0, 0, 0.06]} fontSize={1.05} color="#000" anchorX="center" anchorY="middle">
-          fps
-        </Text>
-      </Box>
-    </Interactive>
-  )
-}
-
-// function HUD() {
-//   // const { gl, camera } = useThree();
-
-//   if (!useXR().getController('left') || !useXR().getController('right')){
-//     return(<></>)
-//   }
-
-//   const { x: hX, y: hY, z: hZ } = useXR().getController('left').controller.position;
-//   const { x: rX, y: rY, z: rZ } = useXR().getController('right').controller.position;
-//   const { x: hRX, y: hRY, z: hRZ } = useXR().getController('left').controller.rotation;
-//   const { x: rRX, y: rRY, z: rRZ } = useXR().getController('right').controller.rotation;
-
-//   return (
-//     <div style={{ position: 'absolute', top: 0, left: 0 }}>
-//       <p>Headset Position: {hX.toFixed(2)}, {hY.toFixed(2)}, {hZ.toFixed(2)}</p>
-//       <p>Headset Rotation: {hRX.toFixed(2)}, {hRY.toFixed(2)}, {hRZ.toFixed(2)}</p>
-//       <p>Right Controller Position: {rX.toFixed(2)}, {rY.toFixed(2)}, {rZ.toFixed(2)}</p>
-//       <p>Right Controller Rotation: {rRX.toFixed(2)}, {rRY.toFixed(2)}, {rRZ.toFixed(2)}</p>
-//     </div>
-//   );
-// }
-
-const mappings = {
-   "head":{
-      "position":{
-         "x":{
-            "minIn":-3.14,
-            "maxIn":3.14,
-            "minOut":0,
-            "maxOut":180
-         },
-         "y":{
-            "minIn":-3.14,
-            "maxIn":3.14,
-            "minOut":0,
-            "maxOut":180
-         },
-         "z":{
-            "minIn":-3.14,
-            "maxIn":3.14,
-            "minOut":0,
-            "maxOut":180
-         }
-      },
-      "orientation":{
-         "roll":{
-            "minIn":-3.14,
-            "maxIn":3.14,
-            "minOut":0,
-            "maxOut":180
-         },
-         "pitch":{
-            "minIn":-3.14,
-            "maxIn":3.14,
-            "minOut":0,
-            "maxOut":180
-         },
-         "yaw":{
-            "minIn":-3.14,
-            "maxIn":3.14,
-            "minOut":0,
-            "maxOut":180
-         }
-      }
-   }
-}
-
-function getMappedValue(path, mappings, defaultValue) {
-  const map = get(mappings, path)
-  if (!map) {
-    return defaultValue
-  }
-
-  return ((defaultValue - map.minIn) * (map.maxOut - map.minOut)) / (map.maxIn - map.minIn) + map.minIn
-}
-
-function getPose(name, position, orientation, mappings) {
-  return {
-    name: name,
-    position: {
-     x: position.x, // getMappedValue(name + ".position.x", mappings, position.x),
-     y: position.y, // getMappedValue(name + ".position.y", mappings, position.y),
-     z: position.z // getMappedValue(name + ".position.z", mappings, position.z),
-    },
-    orientation: {
-      roll: orientation._z, // getMappedValue(name + ".orientation.roll", mappings, orientation._x),
-      pitch: orientation._x, // getMappedValue(name + ".orientation.pitch", mappings, orientation._y),
-      yaw: orientation._y // getMappedValue(name + ".orientation.yaw", mappings, orientation._z)
-    },
-  }
-}
+import { Text } from "@react-three/drei"
+import { useFrame } from "react-three-fiber"
+import { useXR } from "@react-three/xr"
+import { VRButton, ARButton, XR, Controllers, Hands, useXREvent, useController } from "@react-three/xr"
+import { Canvas } from "@react-three/fiber"
 
 function deltaPose(pose0, pose1, threshold) {
   if (!pose0 || !pose1) {
@@ -158,121 +22,187 @@ function deltaPose(pose0, pose1, threshold) {
   )
 }
 
+function getPose(name, position, orientation) {
+  return {
+    name: name,
+    position: {
+      x: position.x,
+      y: position.y,
+      z: position.z,
+    },
+    orientation: {
+      roll: orientation._z,
+      pitch: orientation._x,
+      yaw: orientation._y,
+    },
+  }
+}
+
+function getEvent(xrEvent) {
+
+  let event = {
+      id: xrEvent?.target?.uuid,
+      type: xrEvent?.nativeEvent?.type,
+      value: true,
+      meta:{
+        handedness: xrEvent?.target?.inputSource.handedness,
+      }      
+    }
+  return event  
+}
+
 let lastPoses = {}
 
-function ControllerData() {
-  const player = useXR((state) => state.player)
-  const left = useController("left")
-  const right = useController("right")
-  const gaze = useController("none")
-
+function HUD() {
+  const { message, sendMessage, readyState, sendTo } = useContext(RuntimeContext)
   const threshold = 0.01
 
-  const { message, sendMessage, readyState, sendTo } = useContext(RuntimeContext)
+  const {
+    // An array of connected `XRController`
+    controllers,
+    // Whether the XR device is presenting in an XR session
+    isPresenting,
+    // Whether hand tracking inputs are active
+    isHandTracking,
+    // A THREE.Group representing the XR viewer or player
+    player,
+    // The active `XRSession`
+    session,
+    // `XRSession` foveation. This can be configured as `foveation` on <XR>. Default is `0`
+    foveation,
+    // `XRSession` reference-space type. This can be configured as `referenceSpace` on <XR>. Default is `local-floor`
+    referenceSpace,
+  } = useXR()
 
-  // FIXME - diffDeltaPublish publish only on dif > 0.01
+  const leftController = useController("left")
+  const rightController = useController("right")
+  const headset = useController("none")
 
+  const handleSqeezeStart = (xrEvent) => {
+    let event = getEvent(xrEvent)
+    sendTo("webxr", "publishEvent", event)
+  }
+
+  const handleSqueezeEnd = (xrEvent) => {
+    let event = getEvent(xrEvent)
+    sendTo("webxr", "publishEvent", event)
+  }
+
+  // TODO - what is the advantage of using zustrand - sharing data with other components?
+  // const player = useXR((state) => state.player)
+  // const controllers = useXR((state) => state.controllers)
+
+  const textRef = useRef()
+
+  // useXREvent('inputsourceselect', handleXRInput);
+  // useXREvent('squeeze', handleSqueeze)
+  useXREvent("squeezestart", handleSqeezeStart)
+  useXREvent("squeezeend", handleSqueezeEnd)
+
+  // data changes only happen when in VR
   useFrame(() => {
-    // beginning of frame - high rps processing
-    if (player.children) {
-      // console.log(player.children[0].controller.rotation);
-    }
+    if (controllers.length >= 2) {
+      // left ... maybe
+      let p = leftController.controller.position
+      let r = leftController.controller.rotation
+      // console.info(pose.position)
 
-    if (left) {
-      const p = left.controller.position
-      // console.info(`left ${p.x} ${p.y} ${p.z}`)
-    }
-
-    if (right) {
-      const p = right.controller.position
-      // console.info(`right ${p.x} ${p.y} ${p.z}`)
-    }
-
-    // player?.children?.forEach((child) => {
-    //   const p = child.position
-    //   const r = child.rotation
-    //   console.info(`child ${JSON.stringify(child)}`)
-    //   // console.info(`${child.name} ${p.x} ${p.y} ${p.z}`)
-    //   let pose = getPose(child.name, p, r, mappings)
-    //   if (deltaPose(pose, lastPoses[pose.name], threshold)) {
-    //     sendTo("webxr", "publishPose", pose)
-    //   }
-    //   lastPoses[pose.name] = pose
-    //   // console.log(child);
-    // }
-    // )
-
-    // headset controller 0
-    if (player.children[0]) {
-      // head
-      let p = player.children[0].position
-      let r = player.children[0].rotation
-      // console.info(`headset ${p.x} ${p.y} ${p.z}`)
-      // FIXME - send('method', data)
-      let pose = getPose("head", p, r, mappings)
+      let pose = getPose("left", p, r)
 
       if (deltaPose(pose, lastPoses[pose.name], threshold)) {
         sendTo("webxr", "publishPose", pose)
       }
       lastPoses[pose.name] = pose
 
+      // right ... maybe
+      p = rightController.controller.position
+      r = rightController.controller.rotation
+      // console.info(pose.position)
 
-      // right
-      // p = player.children[1].position
-      // r = player.children[1].rotation
-      // // console.info(`headset ${p.x} ${p.y} ${p.z}`)
-      // // FIXME - send('method', data)
-      // pose = getPose("right", p, r, mappings)
+      pose = getPose("right", p, r)
 
-      // if (deltaPose(pose, lastPoses[pose.name], threshold)) {
-      //   sendTo("webxr", "publishPose", pose)
-      // }
-      // lastPoses[pose.name] = pose
-      
-
-      
-
-      // sendMessage(player.children[0].position)
+      if (deltaPose(pose, lastPoses[pose.name], threshold)) {
+        sendTo("webxr", "publishPose", pose)
+      }
+      lastPoses[pose.name] = pose
+      // console.info(controllers[1].controller.position)
+      // console.info(leftController.position)
     }
-   })
-  // console.info(player.rotation)
 
-  return null
-}
+    if (player) {
+      // head ... maybe
+      let p = player.children[0].position
+      let r = player.children[0].rotation
+      // console.info(pose.position)
 
-const WebXr = () => {
-  const [value, setValue] = useState(0)
-  /// const player = useXR((state) => state.player)
+      let pose = getPose("head", p, r)
 
-  const handleChange = (event, newValue) => {
-    setValue(newValue)
-  }
+      if (deltaPose(pose, lastPoses[pose.name], threshold)) {
+        sendTo("webxr", "publishPose", pose)
+      }
+      lastPoses[pose.name] = pose
+    }
 
-  const { message, sendMessage, readyState } = useContext(RuntimeContext)
-  const [messageInput, setMessageInput] = useState("")
+    if (textRef.current && controllers) {
+      textRef.current.position.copy(controllers[0].position)
+      textRef.current.position.y -= 0.2 // Adjust the Y position as needed
+    }
 
-  const handleMessageChange = (event) => {
-    setMessageInput(event.target.value)
-  }
+    // TODO - get joystick info here
+    if (session) {
+      //console.info(session)
 
-  const handleSendMessage = () => {
-    sendMessage(messageInput)
-    setMessageInput("")
-  }
+      session.inputSources.forEach((inputSource) => {
+        // Check if the input source has a gamepad
+        if (inputSource.gamepad) {
+          // Access the thumbstick (joystick) position from the axes array
+          const [xAxis, yAxis] = inputSource.gamepad.axes
+
+          // The joystick position is represented as values between -1 and 1
+          // console.log(`Joystick X-axis position: ${inputSource.handedness} ${xAxis}`);
+          // console.log(`Joystick Y-axis position: ${yAxis}`);
+        }
+      })
+    }
+  }) // useFrame
 
   return (
     <>
-      <VRButton onError={(e) => console.error(e)} />
+      {/* controllers.length >= 2 && (
+        <Text
+          ref={textRef}
+          color="white"
+          fontSize={0.1}
+          maxWidth={1}
+          lineHeight={1}
+        >
+          Headset: X: {controllers[0].position.x.toFixed(2)}, Y: {controllers[0].position.y.toFixed(2)}, Z: {controllers[0].position.z.toFixed(2)}
+          <br />
+          Left Controller: X: {controllers[0].position.x.toFixed(2)}, Y: {controllers[0].position.y.toFixed(2)}, Z: {controllers[0].position.z.toFixed(2)}
+          <br />
+          Right Controller: X: {controllers[1].position.x.toFixed(2)}, Y: {controllers[1].position.y.toFixed(2)}, Z: {controllers[1].position.z.toFixed(2)}
+        </Text>
+      ) */}
+    </>
+  )
+}
+
+// export HUD;
+
+function WebXr() {
+  return (
+    <>
+      <VRButton />
       <Canvas>
         <XR>
-          <Sky sunPosition={[0, 1, 0]} />
-          <Floor />
-          <ambientLight />
-          <pointLight position={[10, 10, 10]} />
           <Controllers />
-          <Button position={[0, 0.8, -1]} />
-          {true && <ControllerData />}
-          <FrameRate />
+          {/*
+          <Hands /> */}
+          <mesh>
+            <HUD />
+            <boxGeometry />
+            {/* <meshBasicMaterial color="blue" /> */}
+          </mesh>
         </XR>
       </Canvas>
     </>
