@@ -1,11 +1,12 @@
-import React, { useRef, useContext } from "react"
+import React, { useRef, useEffect, useContext } from "react"
 import { RuntimeContext } from "../framework/RuntimeContext"
 
-import { Text } from "@react-three/drei"
-import { useFrame } from "react-three-fiber"
+import { useFrame, createPortal, useThree, Canvas } from "react-three-fiber"
 import { useXR } from "@react-three/xr"
 import { VRButton, ARButton, XR, Controllers, Hands, useXREvent, useController } from "@react-three/xr"
-import { Canvas } from "@react-three/fiber"
+import { Pane, Plane, useFBO, OrthographicCamera, Box, Text, Html } from "@react-three/drei"
+import { VideoTexture } from "three"
+const videoSource = process.env.PUBLIC_URL + "/assets/buck.mp4"
 
 function deltaPose(pose0, pose1, threshold) {
   if (!pose0 || !pose1) {
@@ -39,16 +40,15 @@ function getPose(name, position, orientation) {
 }
 
 function getEvent(xrEvent) {
-
   let event = {
-      id: xrEvent?.target?.uuid,
-      type: xrEvent?.nativeEvent?.type,
-      value: true,
-      meta:{
-        handedness: xrEvent?.target?.inputSource.handedness,
-      }      
-    }
-  return event  
+    id: xrEvent?.target?.uuid,
+    type: xrEvent?.nativeEvent?.type,
+    value: true,
+    meta: {
+      handedness: xrEvent?.target?.inputSource.handedness,
+    },
+  }
+  return event
 }
 
 let lastPoses = {}
@@ -166,30 +166,46 @@ function HUD() {
     }
   }) // useFrame
 
+  function Object(ComponentProps) {
+    return (
+      <Box position={[0, 0.0, -1]} args={[1, 1, 0.01]}>
+        <meshStandardMaterial color="lightgrey" />
+        <Text position={[0, 0, 0.06]} fontSize={0.05} color="#000" anchorX="center" anchorY="middle">          
+          x {leftController?.controller?.position?.x?.toFixed(2)}
+        </Text>      
+      </Box>
+    )
+  }
+  
+  function CameraLinkedObject() {
+    const camera = useThree((state) => state.camera)
+    return createPortal(<Object position={[0, 0.6, -1]} />, camera)
+  }
+
   return (
     <>
-      {/* controllers.length >= 2 && (
-        <Text
-          ref={textRef}
-          color="white"
-          fontSize={0.1}
-          maxWidth={1}
-          lineHeight={1}
-        >
-          Headset: X: {controllers[0].position.x.toFixed(2)}, Y: {controllers[0].position.y.toFixed(2)}, Z: {controllers[0].position.z.toFixed(2)}
-          <br />
-          Left Controller: X: {controllers[0].position.x.toFixed(2)}, Y: {controllers[0].position.y.toFixed(2)}, Z: {controllers[0].position.z.toFixed(2)}
-          <br />
-          Right Controller: X: {controllers[1].position.x.toFixed(2)}, Y: {controllers[1].position.y.toFixed(2)}, Z: {controllers[1].position.z.toFixed(2)}
-        </Text>
-      ) */}
+      <CameraLinkedObject />
     </>
   )
 }
 
+
 // export HUD;
 
-function WebXr() {
+const WebXr = () => {
+  const videoRef = useRef()
+  const videoTexture = useRef()
+
+  useEffect(() => {
+    if (videoRef.current) {
+      // Create a VideoTexture from the video element after it has loaded
+      videoRef.current.onloadedmetadata = () => {
+        videoTexture.current = new VideoTexture(videoRef.current)
+        // Force re-render to apply texture
+      }
+    }
+  }, [])
+
   return (
     <>
       <VRButton />
@@ -198,11 +214,18 @@ function WebXr() {
           <Controllers />
           {/*
           <Hands /> */}
+                    <ambientLight intensity={0.5} />
+
+          <pointLight position={[5, 5, 5]} />
+
+
+          
           <mesh>
             <HUD />
             <boxGeometry />
             {/* <meshBasicMaterial color="blue" /> */}
           </mesh>
+
         </XR>
       </Canvas>
     </>
