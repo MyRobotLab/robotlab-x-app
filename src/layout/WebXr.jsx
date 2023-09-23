@@ -172,6 +172,7 @@ function HUD() {
         <meshStandardMaterial color="lightgrey" />
         <Text position={[0, 0, 0.06]} fontSize={0.05} color="#000" anchorX="center" anchorY="middle">          
           x {leftController?.controller?.position?.x?.toFixed(2)}
+          head {player?.children[0]?.position?.x?.toFixed(2)}
         </Text>      
       </Box>
     )
@@ -181,10 +182,23 @@ function HUD() {
     const camera = useThree((state) => state.camera)
     return createPortal(<Object position={[0, 0.6, -1]} />, camera)
   }
+  const camera = useThree((state) => state.camera)
+  
+  let p = leftController?.controller?.position
+  let r = leftController?.controller?.rotation
+
 
   return (
     <>
       <CameraLinkedObject />
+      <Box position={[0, 0.0, -1]} args={[1, 1, 0.01]}>
+        <meshStandardMaterial color="lightgrey" />
+        <Text position={[0, 0, 0.06]} fontSize={0.05} color="#000" anchorX="center" anchorY="middle" >          
+        left x {p?.x?.toFixed(2)}{'\n'}
+        left y {p?.y?.toFixed(2)}{'\n'}
+        left z {p?.z?.toFixed(2)}{'\n'}
+        </Text>      
+      </Box>
     </>
   )
 }
