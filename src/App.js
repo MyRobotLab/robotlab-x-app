@@ -16,7 +16,7 @@ import { CssBaseline, ThemeProvider } from "@mui/material"
 import { ColorModeContext, useMode } from "./theme"
 import Calendar from "./scenes/calendar/calendar"
 import { RuntimeContextProvider } from "./framework/RuntimeContext"
-import WebXr from "./layout/WebXr"
+import WebXR from "./layout/WebXR"
 
 
 function App() {
@@ -37,7 +37,7 @@ function App() {
               <Route path="/tabs" element={<TabLayout />} />
               <Route path="/graph" element={<Graph />} />
               <Route path="/network" element={<Network />} />
-              <Route path="/webxr" element={<WebXr />} />
+              <Route path="/webxr" element={<WebXR />} />
               <Route path="/bar" element={<Bar />} />
               <Route path="/form" element={<Form />} />
               <Route path="/pie" element={<Pie />} />

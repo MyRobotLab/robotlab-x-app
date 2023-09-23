@@ -176,7 +176,7 @@ const Sidebar = () => {
 
             <Button  component={Link} to="/webxr">
               &nbsp;
-              <img src={`../../assets/vr-lite.png`} alt="WebXr" width="22" />
+              <img src={`../../assets/vr-lite.png`} alt="WebXR" width="22" />
             </Button>
 
             {/* 
