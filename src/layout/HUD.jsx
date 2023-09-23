@@ -1,6 +1,6 @@
 import React, { useRef, useEffect, useContext, useState } from "react"
 import { RuntimeContext } from "../framework/RuntimeContext"
-
+import { PoseText } from "./PoseText"
 import { useFrame, createPortal, useThree, Canvas } from "react-three-fiber"
 import { useXR } from "@react-three/xr"
 import { deltaPose, getEvent, getPose } from "../framework/WebXrUtils"
@@ -140,17 +140,42 @@ export const HUD = (props) => {
     // setCounter((counter) => counter + 1)
   }) // useFrame
 
-  function formatPose(poseName) {
-    if (controllerData[poseName]) {
-      let p = controllerData[poseName].position
-      let r = controllerData[poseName].orientation
-      return (
-        <Text position={[0, 1.8, -1.8]} scale={0.04}>
-          {poseName}{'\n'}position: {p.x.toFixed(precision)}, {p.y.toFixed(precision)},{p.z.toFixed(precision)}{'\n'}
-          orientation: ${r.pitch.toFixed(precision)},{r.roll.toFixed(precision)},{r.yaw.toFixed(precision)}{'\n'}
-        </Text>
-      )
-    }
+  function Object(props) {
+    return (
+      <group>
+        {/*}
+        <Box {...props} args={[0.4, 0.1, 0.1]}>
+          <meshStandardMaterial color="blue" />
+        </Box>
+        */}
+        <PoseText
+          poseName="head"
+          position={[0, 0.6, -1.8]}
+          scale={0.04}
+          controllerData={controllerData}
+          precision={precision}
+        />
+        <PoseText
+          poseName="left"
+          position={[0, 0.4, -1.8]}
+          scale={0.04}
+          controllerData={controllerData}
+          precision={precision}
+        />
+        <PoseText
+          poseName="right"
+          position={[0, 0.2, -1.8]}
+          scale={0.04}
+          controllerData={controllerData}
+          precision={precision}
+        />
+      </group>
+    )
+  }
+
+  function CameraLinkedObject() {
+    const camera = useThree((state) => state.camera)
+    return createPortal(<Object position={[0, -2.0, -1]} />, camera)
   }
 
   return (
@@ -167,7 +192,8 @@ export const HUD = (props) => {
     <boxGeometry args={[1, 1, 1]} />
     <meshStandardMaterial color={hovered ? 'hotpink' : 'orange'} />
   */}
-      {formatPose("head")}
+
+      <CameraLinkedObject />
     </group>
   )
 }
