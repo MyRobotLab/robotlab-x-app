@@ -6,11 +6,13 @@ import { useXR } from "@react-three/xr"
 import { deltaPose, getEvent, getPose } from "../framework/WebXrUtils"
 import { VRButton, ARButton, XR, Controllers, Hands, useXREvent, useController } from "@react-three/xr"
 import { Pane, Plane, useFBO, OrthographicCamera, Box, Text, Html } from "@react-three/drei"
-import { VideoTexture } from "three"
+import { VideoTexture, UniformsUtils } from "three"
+// FIXME - not sure I like absolute paths, this should probably be relative
+import { MinimumShader } from "./minimum"
+
 const videoSource = process.env.PUBLIC_URL + "/assets/buck.mp4"
 
 export const HUD = (props) => {
-  const videoRef = useRef()
   const videoTexture = useRef()
   const { message, sendMessage, readyState, sendTo } = useContext(RuntimeContext)
   // const { controllerData, setControllersData } = useState({})
@@ -20,6 +22,9 @@ export const HUD = (props) => {
   const [hovered, hover] = useState(false)
   const [clicked, click] = useState(false)
   const [controllerData, setControllerData] = useState({})
+
+  const url =
+    "https://pmdvod.nationalgeographic.com/NG_Video/596/311/1370718787631_1542234923394_1370715715931_mp4_video_1024x576_1632000_primary_audio_eng_3.mp4"
 
   let precision = 2
 
@@ -178,8 +183,56 @@ export const HUD = (props) => {
     return createPortal(<Object position={[0, -2.0, -1]} />, camera)
   }
 
+  const Texture = ({ texture }) => {
+    return (
+      <mesh>
+        <planeBufferGeometry attach="geometry" args={[16, 9]} />
+        <shaderMaterial
+          attach="material"
+          transparent
+          args={[
+            {
+              ...MinimumShader,
+              uniforms: UniformsUtils.clone(MinimumShader.uniforms),
+            },
+          ]}
+          uniforms-texture-value={texture}
+        />
+      </mesh>
+    )
+  }
+
+  const Video = ({ video }) => {
+    if (video && video.current) {
+      const front = new VideoTexture(video.current)
+      return <Texture texture={front} />
+    }
+  }
+
+  const videoRef = useRef(null)
+  useEffect(() => {    
+    videoRef?.current?.play()    
+  }, [videoRef])
+
   return (
     <group>
+      {/*}
+      <video
+        ref={videoRef}
+        autoPlay={true}
+        muted={true}
+        loop={true}
+        crossOrigin="anonymous"
+        src={url}
+        style={{
+          position: "absolute",
+          top: "-100%",
+          left: "-100%",
+          width: "640px",
+          height: "360px",
+        }}
+      />*/}
+
       <mesh
         {...props}
         ref={ref}
@@ -192,7 +245,7 @@ export const HUD = (props) => {
     <boxGeometry args={[1, 1, 1]} />
     <meshStandardMaterial color={hovered ? 'hotpink' : 'orange'} />
   */}
-
+      {/* <Video video={videoRef} /> */}
       <CameraLinkedObject />
     </group>
   )

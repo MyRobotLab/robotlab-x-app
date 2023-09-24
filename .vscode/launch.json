@@ -1,0 +1,18 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+      {
+        "name": "Debug CRA",
+        "type": "node",
+        "request": "launch",
+        "runtimeExecutable": "npm",
+        "runtimeArgs": ["run-script", "start"],
+        "cwd": "${workspaceFolder}",
+        "env": {
+          "BROWSER": "none"
+        },
+        "sourceMaps": true,
+        "skipFiles": ["<node_internals>/**"]
+      }
+    ]
+  }
