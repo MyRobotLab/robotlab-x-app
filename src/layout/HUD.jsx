@@ -1,4 +1,5 @@
-import React, { useRef, useEffect, useContext, useState } from "react"
+import React, { useRef, useEffect, useContext, useState, useMemo, Suspense } from "react"
+// TODO change to zustand store ?
 import { RuntimeContext } from "../framework/RuntimeContext"
 import { PoseText } from "./PoseText"
 import { useFrame, createPortal, useThree, Canvas } from "react-three-fiber"
@@ -8,12 +9,13 @@ import { VRButton, ARButton, XR, Controllers, Hands, useXREvent, useController }
 import { Pane, Plane, useFBO, OrthographicCamera, Box, Text, Html } from "@react-three/drei"
 import { VideoTexture, UniformsUtils } from "three"
 // FIXME - not sure I like absolute paths, this should probably be relative
-import { MinimumShader } from "./minimum"
 
-const videoSource = process.env.PUBLIC_URL + "/assets/buck.mp4"
+import * as THREE from "three"
+import { useVideoTexture, Center } from "@react-three/drei"
+import CurvedPlane from "./CurvedPlane"
+const { DEG2RAD } = THREE.MathUtils
 
 export const HUD = (props) => {
-  const videoTexture = useRef()
   const { message, sendMessage, readyState, sendTo } = useContext(RuntimeContext)
   // const { controllerData, setControllersData } = useState({})
   const threshold = 0.01
@@ -64,16 +66,6 @@ export const HUD = (props) => {
 
   useXREvent("squeezestart", handleSqeezeStart)
   useXREvent("squeezeend", handleSqueezeEnd)
-
-  useEffect(() => {
-    if (videoRef.current) {
-      // Create a VideoTexture from the video element after it has loaded
-      videoRef.current.onloadedmetadata = () => {
-        videoTexture.current = new VideoTexture(videoRef.current)
-        // Force re-render to apply texture
-      }
-    }
-  }, [])
 
   // callback only happens when in VR
   // data changes only happen when in VR
@@ -183,37 +175,6 @@ export const HUD = (props) => {
     return createPortal(<Object position={[0, -2.0, -1]} />, camera)
   }
 
-  const Texture = ({ texture }) => {
-    return (
-      <mesh>
-        <planeBufferGeometry attach="geometry" args={[16, 9]} />
-        <shaderMaterial
-          attach="material"
-          transparent
-          args={[
-            {
-              ...MinimumShader,
-              uniforms: UniformsUtils.clone(MinimumShader.uniforms),
-            },
-          ]}
-          uniforms-texture-value={texture}
-        />
-      </mesh>
-    )
-  }
-
-  const Video = ({ video }) => {
-    if (video && video.current) {
-      const front = new VideoTexture(video.current)
-      return <Texture texture={front} />
-    }
-  }
-
-  const videoRef = useRef(null)
-  useEffect(() => {    
-    videoRef?.current?.play()    
-  }, [videoRef])
-
   return (
     <group>
       {/*}
@@ -249,4 +210,52 @@ export const HUD = (props) => {
       <CameraLinkedObject />
     </group>
   )
+}
+
+function Scene() {
+  // const url = "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/Sintel.mp4"
+  const url =
+    "https://pmdvod.nationalgeographic.com/NG_Video/596/311/1370718787631_1542234923394_1370715715931_mp4_video_1024x576_1632000_primary_audio_eng_3.mp4"
+  return (
+    <>
+      <group rotation-y={DEG2RAD * 180}>
+        <Screen src={url} />
+      </group>
+    </>
+  )
+}
+
+function Screen({ src }) {
+  const [video, setVideo] = useState()
+
+  const ratio = 16 / 9
+  const width = 5
+  const radius = 4
+  const z = 4
+
+  const r = useMemo(() => (video ? video.videoWidth / video.videoHeight : ratio), [video, ratio])
+
+  return (
+    <group>
+      <Center top position-z={z}>
+        <CurvedPlane width={width} height={width / r} radius={radius}>
+          <Suspense fallback={<meshStandardMaterial side={THREE.DoubleSide} wireframe />}>
+            <VideoMaterial src={src} setVideo={setVideo} />
+          </Suspense>
+        </CurvedPlane>
+      </Center>
+    </group>
+  )
+}
+
+function VideoMaterial({ src, setVideo }) {
+  const texture = useVideoTexture(src)
+  texture.wrapS = THREE.RepeatWrapping
+  texture.wrapT = THREE.RepeatWrapping
+  texture.repeat.x = -1
+  texture.offset.x = 1
+
+  setVideo?.(texture.image)
+
+  return <meshStandardMaterial side={THREE.DoubleSide} map={texture} toneMapped={false} transparent opacity={0.9} />
 }

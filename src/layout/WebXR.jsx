@@ -5,7 +5,7 @@ import { useFrame, createPortal, useThree, Canvas } from "react-three-fiber"
 import { useXR } from "@react-three/xr"
 import { deltaPose, getEvent, getPose } from "../framework/WebXrUtils"
 import { VRButton, ARButton, XR, Controllers, Hands, useXREvent, useController } from "@react-three/xr"
-import { Pane, Plane, useFBO, OrthographicCamera, Box, Text, Html } from "@react-three/drei"
+import { Pane, Plane, useFBO, OrthographicCamera, Box, Text, Html, Image } from "@react-three/drei"
 import { VideoTexture, UniformsUtils } from "three"
 // import { MinimumShader } from "./minimum"
 
@@ -24,7 +24,17 @@ export default function WebXR() {
           <Controllers />
           <ambientLight intensity={0.5} />
           <pointLight position={[5, 5, 5]} />
+          {/*         
+          <Plane args={[5, 5]} position={[0, 0, 0]}>
+            <meshBasicMaterial attach="material">
+              <texture url="/logo.png" />
+            </meshBasicMaterial>
+          </Plane> */}
+          {/*}
+          <Image position={[0, 1, -2]} url="/logo.png" /> */}
+
           <HUD />
+          <OpenCV name="i01.opencv@blah" />
           <Scene />
         </XR>
       </Canvas>
@@ -32,11 +42,29 @@ export default function WebXR() {
   )
 }
 
+function OpenCV(props) {
+  const { message, sendMessage, readyState, sendTo } = useContext(RuntimeContext)
+
+  console.log("OpenCV name", props.name)
+
+  useFrame(() => {
+    // console.log("WebXR useFrame")
+  })
+
+  return (
+    <group>
+      <Image position={[0, 1, -2]} url="/logo.png" />
+    </group>
+  )
+}
+
 function Scene() {
-  const url = "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/Sintel.mp4"
+  // const url = "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/Sintel.mp4"
+  const url =
+    "https://pmdvod.nationalgeographic.com/NG_Video/596/311/1370718787631_1542234923394_1370715715931_mp4_video_1024x576_1632000_primary_audio_eng_3.mp4"
   return (
     <>
-      <group rotation-y={DEG2RAD * 40}>
+      <group rotation-y={DEG2RAD * 180}>
         <Screen src={url} />
       </group>
     </>

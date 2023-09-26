@@ -16,7 +16,8 @@ export default function CurvedPlane({ width, height, radius, children, ...props 
   )
 }
 
-function curvedPlaneGeometry(width = 1, height = 1, radius = 2) {
+function curvedPlaneGeometry(width = 1, height = 1, radius = 0) {
+  // radius = 2
   const segments = 32
   const segmentsH = segments
   const segmentsV = segments / (width / height) // square
