@@ -16,7 +16,7 @@ import CurvedPlane from "./CurvedPlane"
 const { DEG2RAD } = THREE.MathUtils
 
 export const HUD = (props) => {
-  const { message, sendMessage, readyState, sendTo } = useContext(RuntimeContext)
+  const { sendTo } = useContext(RuntimeContext)
   // const { controllerData, setControllersData } = useState({})
   const threshold = 0.01
 

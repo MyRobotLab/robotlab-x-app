@@ -1,6 +1,5 @@
 import React, { useState, useContext } from "react"
 import { Box, Typography, useTheme } from "@mui/material"
-import { ReadyState } from 'react-use-websocket'
 import { DataGrid } from "@mui/x-data-grid"
 import { tokens } from "../theme"
 import { mockDataTeam } from "../data/mockData"
@@ -19,20 +18,7 @@ const TabLayout = () => {
     setValue(newValue)
   }
 
-  const { registry, updateUser } = useContext(RuntimeContext)
-  const { message, sendMessage, readyState } = useContext(RuntimeContext)
-  const [messageInput, setMessageInput] = useState("")
-
-  const handleMessageChange = (event) => {
-    setMessageInput(event.target.value)
-  }
-
-  const handleSendMessage = () => {
-    sendMessage(messageInput)
-    setMessageInput("")
-  }
-
-  function TabPanel(props: TabPanelProps) {
+  function TabPanel(props) {
     const { children, value, index, ...other } = props
 
     return (
@@ -57,22 +43,12 @@ const TabLayout = () => {
 
   return (
     <>
-      <img alt="disconnected" src={readyState === ReadyState.OPEN ? `../../assets/green.png`:`../../assets/red.png`} />
-
       <ServiceTabs></ServiceTabs>
 
       <div>
-        
-          Last Message: <JSONTree data={message} />
-        
-        <div>
-          {/* <input type="text" value={messageInput} onChange={handleMessageChange} /> */}
-
-          <button onClick={handleSendMessage}>Send Message</button>
-        </div>
+        {/*Last Message: <JSONTree data={message} /> */}
+        <div>{/* <input type="text" value={messageInput} onChange={handleMessageChange} /> */}</div>
       </div>
-
-
     </>
   )
 }

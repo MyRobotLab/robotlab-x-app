@@ -1,11 +1,10 @@
 import React, { createContext, useEffect, useCallback, useContext, useState } from "react"
-import useWebSocket, { ReadyState } from "react-use-websocket"
+import useSubscriptionStore from "../store/subscriptionStore"
 
 // create the context
 export const RuntimeContext = createContext({})
 
 // TODO - create js platform id
-
 // create a provider component
 export const RuntimeContextProvider = ({ children }) => {
   var url = require("url")
@@ -16,20 +15,27 @@ export const RuntimeContextProvider = ({ children }) => {
   const hostname = urlParts.hostname
   const port = urlParts.port || (scheme === "https" ? "443" : "80")
   const wsSchema = scheme === "https" ? "wss" : "ws"
-  // const wsUrl = `${wsSchema}://${host}:${port}/api/messages?user=root&pwd=pwd&session_id=2309adf3dlkdk&id=webgui-client`
-  // FIXME - certainly cannot be hardcoded
   const wsUrl = `wss://${hostname}:8443/api/messages?user=root&pwd=pwd&session_id=2309adf3dlkdk&id=webgui-client`
 
   console.log(wsUrl)
 
+  const [subscriptions, setSubscriptions] = useState({})
   const [registry, setRegistry] = useState({})
-  const [message, setMessage] = useState("")
-  const [socketUrl, setSocketUrl] = useState(wsUrl)
-  const [messageHistory, setMessageHistory] = useState([])
-  const { sendMessage, lastMessage, readyState } = useWebSocket(socketUrl)
+  const [socketUrl, setSocketUrl] = useState(
+    `wss://${hostname}:8443/api/messages?user=root&pwd=pwd&session_id=2309adf3dlkdk&id=webgui-client`
+  )
+  const [readyState, setReadyState] = useState(false)
+  const { connect, disconnect, connected, sendJsonMessage } = useSubscriptionStore()
 
   const remoteId = "mrl-id"
   const id = "react-app-id"
+  let socket = null
+
+  useEffect(() => {
+    if (!connected) {
+      connect(wsUrl)
+    }
+  }, [socketUrl])
 
   const getRegistry = () => {
     return registry
@@ -41,20 +47,7 @@ export const RuntimeContextProvider = ({ children }) => {
     }
   }
 
-  useEffect(() => {
-    if (lastMessage !== null) {
-      setMessageHistory((prev) => prev.concat(lastMessage))
-    }
-  }, [lastMessage, setMessageHistory])
-
-  const connectionStatus = {
-    [ReadyState.CONNECTING]: "Connecting",
-    [ReadyState.OPEN]: "Open",
-    [ReadyState.CLOSING]: "Closing",
-    [ReadyState.CLOSED]: "Closed",
-    [ReadyState.UNINSTANTIATED]: "Uninstantiated",
-  }[readyState]
-
+  // TODO - varargs list of parameters
   // const sendTo = (...arguments) => {
   //   const name = arguments[0]
   //   const method = arguments[1]
@@ -86,8 +79,11 @@ export const RuntimeContextProvider = ({ children }) => {
     }
 
     let json = JSON.stringify(msg)
-
-    sendMessage(json)
+    if (connected) {
+      sendJsonMessage(json)
+    } else {
+      console.error("socket not ready for json msg ", json)
+    }
   }
 
   const getFullName = (name) => {
@@ -132,33 +128,58 @@ export const RuntimeContextProvider = ({ children }) => {
     }
   }
 
-  const { lastJsonMessage, sendJsonMessage } = useWebSocket(socketUrl, {
-    onMessage: (event) => {
-      if (event.data != "X") {
-        const message = JSON.parse(event.data)
-        setMessage(message)
-      } // else atmosphere specific
-    },
-  })
+  // Function to subscribe a component with a name, method, and callback
+  const subscribe = (name, method, callbackFunction) => {
+    let key = name + "." + method
+    console.info("Before:", callbackFunction)
 
-  // const sendMessage = (message) => {
-  //   sendJsonMessage({ message })
-  // }
+    // If callbackFunction is not found in the array, add it
+    let methods = subscriptions[key] || []
+
+    for (let i = 0; i < methods.length; i++) {
+      let fn = methods[i]
+      console.log(fn)
+      console.log(fn.toString())
+      if (fn.toString() === callbackFunction.toString()) {
+        console.info("equals !!")
+        return
+      }
+
+      console.log(methods[i])
+      if (methods[i] == callbackFunction) {
+        console.info("equals !!")
+      }
+      if (methods[i] === callbackFunction) {
+        console.info("equals !!")
+      }
+    }
+    methods.push(callbackFunction)
+    console.info("Adding:", callbackFunction)
+    setSubscriptions((prevSubscriptions) => ({
+      ...prevSubscriptions,
+      [key]: methods,
+    }))
+  }
+
+  // Function to unsubscribe a component by name
+  const unsubscribe = (name) => {
+    setSubscriptions((prevSubscriptions) => {
+      const updatedSubscriptions = { ...prevSubscriptions }
+      delete updatedSubscriptions[name]
+      return updatedSubscriptions
+    })
+  }
 
   // exposed methods
   const value = {
-    registry,
-    message,
-    sendMessage,
-    register,
-    getRegistry,
-    lastMessage,
     readyState,
-    connectionStatus,
+    registry,
+    getRegistry,
+    register,
     sendTo,
+    subscribe,
+    unsubscribe,
   }
 
   return <RuntimeContext.Provider value={value}>{children}</RuntimeContext.Provider>
 }
-
-// export default RuntimeContext

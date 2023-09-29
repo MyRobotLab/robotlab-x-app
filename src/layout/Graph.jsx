@@ -1,6 +1,5 @@
 import React, { useState, useContext } from "react"
 import { Box, Typography, useTheme } from "@mui/material"
-import { ReadyState } from 'react-use-websocket'
 import { DataGrid } from "@mui/x-data-grid"
 import { tokens } from "../theme"
 import { mockDataTeam } from "../data/mockData"
@@ -21,8 +20,7 @@ const Graph = () => {
     setValue(newValue)
   }
 
-  const { registry, updateUser } = useContext(RuntimeContext)
-  const { message, sendMessage, readyState } = useContext(RuntimeContext)
+  const { message, sendMessage } = useContext(RuntimeContext)
   const [messageInput, setMessageInput] = useState("")
 
   const handleMessageChange = (event) => {
@@ -34,14 +32,10 @@ const Graph = () => {
     setMessageInput("")
   }
 
-
   return (
     <>
-      <img alt="disconnected" src={readyState === ReadyState.OPEN ? `../../assets/green.png`:`../../assets/red.png`} />
       <div>
-        
-          Last Message: <JSONTree data={message} />
-        
+        Last Message: <JSONTree data={message} />
         <div>
           {/* <input type="text" value={messageInput} onChange={handleMessageChange} /> */}
 

@@ -1,36 +1,36 @@
-import React, { useState, useContext } from "react";
-import { ProSidebar, Menu, MenuItem } from "react-pro-sidebar";
-import { Box, IconButton, Typography, useTheme } from "@mui/material";
-import { RuntimeContext } from "../../framework/RuntimeContext";
-import Stack from '@mui/material/Stack';
-import Button from '@mui/material/Button';
+import React, { useState, useContext } from "react"
+import { ProSidebar, Menu, MenuItem } from "react-pro-sidebar"
+import { Box, IconButton, Typography, useTheme } from "@mui/material"
+import { RuntimeContext } from "../../framework/RuntimeContext"
+import Stack from "@mui/material/Stack"
+import Button from "@mui/material/Button"
 
-import { ReadyState } from "react-use-websocket";
-import { Link } from "react-router-dom";
-import "react-pro-sidebar/dist/css/styles.css";
-import { tokens } from "../../theme";
+import { Link } from "react-router-dom"
+import "react-pro-sidebar/dist/css/styles.css"
+import { tokens } from "../../theme"
 
 // icons
-import TabOutlinedIcon from "@mui/icons-material/TabOutlined";
-import DashboardOutlinedIcon from "@mui/icons-material/DashboardOutlined";
-import HomeOutlinedIcon from "@mui/icons-material/HomeOutlined";
-import PeopleOutlinedIcon from "@mui/icons-material/PeopleOutlined";
-import HubOutlinedIcon from "@mui/icons-material/HubOutlined";
-import ContactsOutlinedIcon from "@mui/icons-material/ContactsOutlined";
-import ReceiptOutlinedIcon from "@mui/icons-material/ReceiptOutlined";
-import PersonOutlinedIcon from "@mui/icons-material/PersonOutlined";
-import CalendarTodayOutlinedIcon from "@mui/icons-material/CalendarTodayOutlined";
-import HelpOutlineOutlinedIcon from "@mui/icons-material/HelpOutlineOutlined";
-import BarChartOutlinedIcon from "@mui/icons-material/BarChartOutlined";
-import PieChartOutlineOutlinedIcon from "@mui/icons-material/PieChartOutlineOutlined";
-import TimelineOutlinedIcon from "@mui/icons-material/TimelineOutlined";
-import MenuOutlinedIcon from "@mui/icons-material/MenuOutlined";
-import MapOutlinedIcon from "@mui/icons-material/MapOutlined";
-import TroubleshootOutlinedIcon from "@mui/icons-material/TroubleshootOutlined";
+import TabOutlinedIcon from "@mui/icons-material/TabOutlined"
+import DashboardOutlinedIcon from "@mui/icons-material/DashboardOutlined"
+import HomeOutlinedIcon from "@mui/icons-material/HomeOutlined"
+import PeopleOutlinedIcon from "@mui/icons-material/PeopleOutlined"
+import HubOutlinedIcon from "@mui/icons-material/HubOutlined"
+import ContactsOutlinedIcon from "@mui/icons-material/ContactsOutlined"
+import ReceiptOutlinedIcon from "@mui/icons-material/ReceiptOutlined"
+import PersonOutlinedIcon from "@mui/icons-material/PersonOutlined"
+import CalendarTodayOutlinedIcon from "@mui/icons-material/CalendarTodayOutlined"
+import HelpOutlineOutlinedIcon from "@mui/icons-material/HelpOutlineOutlined"
+import BarChartOutlinedIcon from "@mui/icons-material/BarChartOutlined"
+import PieChartOutlineOutlinedIcon from "@mui/icons-material/PieChartOutlineOutlined"
+import TimelineOutlinedIcon from "@mui/icons-material/TimelineOutlined"
+import MenuOutlinedIcon from "@mui/icons-material/MenuOutlined"
+import MapOutlinedIcon from "@mui/icons-material/MapOutlined"
+import TroubleshootOutlinedIcon from "@mui/icons-material/TroubleshootOutlined"
+import useSubscriptionStore from "../../store/subscriptionStore"
 
 const Item = ({ title, to, icon, selected, setSelected }) => {
-  const theme = useTheme();
-  const colors = tokens(theme.palette.mode);
+  const theme = useTheme()
+  const colors = tokens(theme.palette.mode)
   return (
     <MenuItem
       active={selected === title}
@@ -43,15 +43,15 @@ const Item = ({ title, to, icon, selected, setSelected }) => {
       <Typography>{title}</Typography>
       <Link to={to} />
     </MenuItem>
-  );
-};
+  )
+}
 
 const Sidebar = () => {
-  const theme = useTheme();
-  const colors = tokens(theme.palette.mode);
-  const [isCollapsed, setIsCollapsed] = useState(true);
-  const [selected, setSelected] = useState("Dashboard");
-  const { message, sendMessage, readyState } = useContext(RuntimeContext);
+  const { connected } = useSubscriptionStore()
+  const theme = useTheme()
+  const colors = tokens(theme.palette.mode)
+  const [isCollapsed, setIsCollapsed] = useState(true)
+  const [selected, setSelected] = useState("Dashboard")
 
   return (
     <Box
@@ -77,16 +77,12 @@ const Sidebar = () => {
         <Menu iconShape="square">
           <Box align="center">
             <img
-              alt="disconnected"
+              alt={connected ? `connected` : `disconnected`}
               style={{
                 width: "22px",
                 alighn: "center",
               }}
-              src={
-                readyState === ReadyState.OPEN
-                  ? `../../assets/green.png`
-                  : `../../assets/red.png`
-              }
+              src={connected ? `../../assets/green.png` : `../../assets/red.png`}
             />
           </Box>
 
@@ -100,12 +96,7 @@ const Sidebar = () => {
             }}
           >
             {!isCollapsed && (
-              <Box
-                display="flex"
-                justifyContent="space-between"
-                alignItems="center"
-                ml="15px"
-              >
+              <Box display="flex" justifyContent="space-between" alignItems="center" ml="15px">
                 <Typography variant="h3" color={colors.grey[100]}>
                   ADMINIS
                 </Typography>
@@ -128,12 +119,7 @@ const Sidebar = () => {
                 />
               </Box>
               <Box textAlign="center">
-                <Typography
-                  variant="h2"
-                  color={colors.grey[100]}
-                  fontWeight="bold"
-                  sx={{ m: "10px 0 0 0" }}
-                >
+                <Typography variant="h2" color={colors.grey[100]} fontWeight="bold" sx={{ m: "10px 0 0 0" }}>
                   RobotLab-X
                 </Typography>
                 <Typography variant="h5" color={colors.greenAccent[500]}>
@@ -143,7 +129,7 @@ const Sidebar = () => {
             </Box>
           )}
 
-          <Box  paddingLeft={isCollapsed ? undefined : "10%"}>
+          <Box paddingLeft={isCollapsed ? undefined : "10%"}>
             <Item
               title="Dashboard"
               to="/"
@@ -151,20 +137,8 @@ const Sidebar = () => {
               selected={selected}
               setSelected={setSelected}
             />
-            <Item
-              title="Tabs"
-              to="/tabs"
-              icon={<TabOutlinedIcon />}
-              selected={selected}
-              setSelected={setSelected}
-            />
-            <Item
-              title="Graph"
-              to="/graph"
-              icon={<HubOutlinedIcon />}
-              selected={selected}
-              setSelected={setSelected}
-            />
+            <Item title="Tabs" to="/tabs" icon={<TabOutlinedIcon />} selected={selected} setSelected={setSelected} />
+            <Item title="Graph" to="/graph" icon={<HubOutlinedIcon />} selected={selected} setSelected={setSelected} />
 
             <Item
               title="Network and Diagnostics"
@@ -174,7 +148,7 @@ const Sidebar = () => {
               setSelected={setSelected}
             />
 
-            <Button  component={Link} to="/webxr">
+            <Button component={Link} to="/webxr">
               &nbsp;
               <img src={`../../assets/vr-lite.png`} alt="WebXR" width="22" />
             </Button>
@@ -248,7 +222,7 @@ const Sidebar = () => {
         </Menu>
       </ProSidebar>
     </Box>
-  );
-};
+  )
+}
 
-export default Sidebar;
+export default Sidebar

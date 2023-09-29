@@ -4,14 +4,14 @@ import { TextureLoader } from "three"
 import * as THREE from "three"
 
 const VideoPlane = ({ videoFile, position }) => {
-  const videoRef = useRef();
-  const texture = useRef();
+  const videoRef = useRef()
+  const texture = useRef()
 
   useFrame(() => {
     if (videoRef.current && videoRef.current.readyState === videoRef.current.HAVE_ENOUGH_DATA) {
-      texture.current.needsUpdate = true;
+      texture.current.needsUpdate = true
     }
-  });
+  })
 
   return (
     <mesh position={position}>
@@ -27,10 +27,10 @@ const VideoPlane = ({ videoFile, position }) => {
         playsInline
         muted
         crossOrigin="anonymous"
-        style={{ display: 'none' }}
+        style={{ display: "none" }}
       />
     </mesh>
-  );
-};
+  )
+}
 
-export default VideoPlane;
+export default VideoPlane

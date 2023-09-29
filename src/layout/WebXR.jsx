@@ -7,6 +7,8 @@ import { deltaPose, getEvent, getPose } from "../framework/WebXrUtils"
 import { VRButton, ARButton, XR, Controllers, Hands, useXREvent, useController } from "@react-three/xr"
 import { Pane, Plane, useFBO, OrthographicCamera, Box, Text, Html, Image } from "@react-three/drei"
 import { VideoTexture, UniformsUtils } from "three"
+import useSubscriptionStore from "../store/subscriptionStore"
+
 // import { MinimumShader } from "./minimum"
 
 import * as THREE from "three"
@@ -43,17 +45,59 @@ export default function WebXR() {
 }
 
 function OpenCV(props) {
-  const { message, sendMessage, readyState, sendTo } = useContext(RuntimeContext)
+  // const { subscribe, unsubscribe } = useContext(RuntimeContext)
+  const { subscribe, unsubscribe } = useSubscriptionStore()
+  const [imageData, setImageData] = useState("/Blender.png")
 
   console.log("OpenCV name", props.name)
 
+  let img = "/Blender.png"
+  let key = "1"
+
   useFrame(() => {
-    // console.log("WebXR useFrame")
+    console.log(img)
   })
+
+  // useEffect(() => {
+  //   const onPublishWebDisplay = (message) => {
+  //     console.log(`Message received: ${message}`)
+  //     // You can perform actions based on the received message here
+  //   }
+
+  //   // Subscribe with a unique name, method, and callback
+  //   subscribe("i01.opencv@blah", "onPublishWebDisplay", onPublishWebDisplay)
+
+  //   return () => {
+  //     // Unsubscribe when the component unmounts
+  //     unsubscribe("i01.opencv@blah", "onPublishWebDisplay", onPublishWebDisplay)
+  //   }
+  // }, [subscribe, unsubscribe])
+
+  const handleCallback = (message) => {
+    // console.log(`received message: ${message}`)
+    let inData = message.data[0]
+    img = inData.data
+    // img = "https://cdn.pixabay.com/photo/2014/06/03/19/38/road-sign-361514_960_720.png"
+    // img = "/logo.png"
+    // key = Date.now() + ""
+    setImageData(img)
+    // You can perform any actions you want with the received message here
+  }
+
+  useEffect(() => {
+    // Define your callback method
+    // Subscribe to a method with a name and provide the callback
+    subscribe("exampleMethod", "exampleMethodName", handleCallback)
+
+    // Unsubscribe when the component unmounts or when no longer needed
+    return () => {
+      unsubscribe("exampleMethod") // Unsubscribe by the method name
+    }
+  }, [subscribe, unsubscribe])
 
   return (
     <group>
-      <Image position={[0, 1, -2]} url="/logo.png" />
+      <Image position={[0, 1, -2]} key={key} url={imageData} />
     </group>
   )
 }

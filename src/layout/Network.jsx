@@ -1,6 +1,5 @@
 import React, { useState, useContext } from "react"
 import { Box, Typography, useTheme } from "@mui/material"
-import { ReadyState } from 'react-use-websocket'
 import { DataGrid } from "@mui/x-data-grid"
 import { tokens } from "../theme"
 import { mockDataTeam } from "../data/mockData"
@@ -13,27 +12,6 @@ import { RuntimeContext } from "../framework/RuntimeContext"
 import { JSONTree } from "react-json-tree"
 
 const Network = () => {
-  const [value, setValue] = useState(0)
-
-  const handleChange = (event, newValue) => {
-    setValue(newValue)
-  }
-
-  const { registry, updateUser } = useContext(RuntimeContext)
-  const { message, sendMessage, readyState } = useContext(RuntimeContext)
-  const [messageInput, setMessageInput] = useState("")
-
-  const handleMessageChange = (event) => {
-    setMessageInput(event.target.value)
-  }
-
-  const handleSendMessage = () => {
-    sendMessage(messageInput)
-    setMessageInput("")
-  }
-
-
-
   const theme = useTheme()
   const colors = tokens(theme.palette.mode)
   const columns = [
@@ -59,24 +37,11 @@ const Network = () => {
       field: "data",
       headerName: "Data",
       flex: 1,
-    }
+    },
   ]
 
   return (
     <>
-      <img alt="disconnected" src={readyState === ReadyState.OPEN ? `../../assets/green.png`:`../../assets/red.png`} />
-
-      <div>
-        
-          Last Message: <JSONTree data={message} />
-        
-        <div>
-          {/* <input type="text" value={messageInput} onChange={handleMessageChange} /> */}
-
-          <button onClick={handleSendMessage}>Send Message</button>
-        </div>
-      </div>
-
       <Box m="20px">
         <Header title="Network" subtitle="Current network details" />
         <Box
