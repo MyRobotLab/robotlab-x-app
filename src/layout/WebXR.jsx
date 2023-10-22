@@ -1,151 +1,186 @@
 import React, { useRef, useEffect, useContext, useState, useMemo, Suspense } from "react"
-import { RuntimeContext } from "../framework/RuntimeContext"
-import { HUD } from "./HUD"
-import { useFrame, createPortal, useThree, Canvas } from "react-three-fiber"
+import { HUD2 } from "../components/webxr/HUD2"
+import { useFrame, createPortal, useThree, Canvas } from "@react-three/fiber"
 import { useXR } from "@react-three/xr"
 import { deltaPose, getEvent, getPose } from "../framework/WebXrUtils"
 import { VRButton, ARButton, XR, Controllers, Hands, useXREvent, useController } from "@react-three/xr"
-import { Pane, Plane, useFBO, OrthographicCamera, Box, Text, Html, Image } from "@react-three/drei"
+import {
+  Pane,
+  Plane,
+  useFBO,
+  OrthographicCamera,
+  Box,
+  Text,
+  Html,
+  Image,
+  useTexture,
+  useVideoTexture,
+} from "@react-three/drei"
 import { VideoTexture, UniformsUtils } from "three"
-import useSubscriptionStore from "../store/subscriptionStore"
-
-// import { MinimumShader } from "./minimum"
-
+import store from "../store/store"
 import * as THREE from "three"
-import { useVideoTexture, Center } from "@react-three/drei"
-import CurvedPlane from "./CurvedPlane"
-const { DEG2RAD } = THREE.MathUtils
+import OpenCV2 from "../components/webxr/service/OpenCV2"
+import Scene from "../components/webxr/Scene"
+import MJPEGVideoPanel from "../components/MJPEGVideoPanel"
+import WebGLImageRenderer from "./WebGLImageRenderer"
 
-export default function WebXR() {
+import ReactPlayer from "react-player"
+
+function MjpegImage(...props) {
+  // // const ref = useRef()
+  // let mpegUrl = null
+  // useFrame(() => {
+  //   // if (ref.current) {
+  //   //   ref.current.url = "http://localhost:8080/?action=stream&tsx=" + new Date().getTime()
+  //   //   ref.current.material.uniforms.map.needsUpdate = true
+  //   // }
+  //   mpegUrl = "http://localhost:8080/?action=stream&tsx=" + new Date().getTime()
+  //   return
+  //   (  <>
+  //     <Text           position={[0, -0.7, -1.8]}
+  //         scale={2.0}> HALLO !!!!! </Text>
+  //   <Image position={[0, 1, -1]} url={mpegUrl} />
+  //   </>
+  //     )
+  // })
+
+  // if (mpegUrl) {
+  //   return
+  //   (  <>
+  //     <Text           position={[0, -0.7, -1.8]}
+  //         scale={2.0}> HALLO !!!!! </Text>
+  //   <Image position={[0, 1, -1]} url={mpegUrl} />
+  //   </>
+  //     )
+  // } else {
+  //   return <></>
+  // }
+
+  const texture = useVideoTexture("http://localhost:8080/?action=stream")
   return (
     <>
+      <Image position={[0, 1, -1]} texture={texture} />
+    </>
+  )
+
+  // return <Image position={[0, 1, -1]} ref={ref} url="http://localhost:8080/?action=stream" />
+}
+
+function RotatingBox() {
+  const mesh = useRef()
+
+  // Use the useFrame hook to create a custom animation loop
+  useFrame(() => {
+    // Rotate the mesh by a small amount in each frame
+    mesh.current.rotation.x += 0.01
+    mesh.current.rotation.y += 0.01
+  })
+
+  return (
+    <mesh ref={mesh}>
+      <boxGeometry args={[1, 1, 1]} />
+      {/* <meshStandardMaterial color="orange" /> */}
+      <meshBasicMaterial attach="material">
+        {/* Use the useTexture hook to load an image texture */}
+        <texture
+          url="/logo.jpg" // Replace with the URL of your image
+          attach="map" // Attach the texture to the "map" property of the material
+        />
+      </meshBasicMaterial>
+    </mesh>
+  )
+}
+
+function Cube({ url }) {
+  const texture = useTexture(url)
+  return (
+    <mesh>
+      <meshBasicMaterial map={texture} />
+      <boxGeometry />
+    </mesh>
+  )
+}
+
+export default function WebXR() {
+  console.info("WebXR start")
+
+  return (
+    <>
+      {/*
+      <ReactPlayer
+        url="https://test-videos.co.uk/vids/bigbuckbunny/webm/vp8/360/Big_Buck_Bunny_360_10s_1MB.webm"
+        autoPlay
+        autoplay={true}
+        muted={true}
+      />
+      
+      <video src="/stream.m3u8" autoPlay />
+
+      
+      <video src="http://localhost:8080/yourstream" autoPlay />
+
+      <video src="/output.flv" />
+      */}
+
+      {/*
+       <ReactFlvPlayer
+          url = "/output.flv"
+          isMuted={true}
+        />
+        */}
+
+      {/*
+      <iframe width="424" height="240" src="https://www.youtube.com/embed/AAKm0jro_hQ" title="test" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe>
+      */}
+      {/* <iframe width="424" height="240" src="https://www.youtube.com/embed/AAKm0jro_hQ" title="test" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe> */}
+
+      <WebGLImageRenderer imageUrl="http://localhost:8080/?action=stream" />
+
       <VRButton />
       <Canvas>
-        {/*<Video video={videoRef} />*/}
+        <ambientLight intensity={0.5} /> {/* Adjust the ambient light intensity */}
+        <pointLight position={[5, 5, 5]} intensity={0.8} /> {/* Adjust the point light position and intensity */}
+        {/*}
+        <Cube url="http://localhost:8080/?action=stream" />
+        
+        <Box position={[-1, 2, 0]} scale={[1, 1, 1]}>
+          <meshBasicMaterial attach="material">
+            <texture
+              url="/logo.jpg" // Replace with the correct image path
+              attach="map"
+              onLoad={(texture) => {
+                console.log("Texture loaded:", texture)
+              }}
+            />
+          </meshBasicMaterial>
+        </Box>
+        */}
         <XR>
+          {/* <MJPEGVideoPanel mjpegUrl={mjpegUrl} /> */}
           <Controllers />
           <ambientLight intensity={0.5} />
           <pointLight position={[5, 5, 5]} />
-          {/*         
-          <Plane args={[5, 5]} position={[0, 0, 0]}>
-            <meshBasicMaterial attach="material">
-              <texture url="/logo.png" />
-            </meshBasicMaterial>
-          </Plane> */}
-          {/*}
-          <Image position={[0, 1, -2]} url="/logo.png" /> */}
-
-          <HUD />
-          <OpenCV name="i01.opencv@blah" />
+          <HUD2 />
           <Scene />
+          {/*}
+          <MjpegImage />
+
+          
+          
+
+          
+          {/* <RoatatingBox /> 
+
+          <Box position={[-1, 0, 0]} scale={[1, 1, 1]}>
+            <meshBasicMaterial attach="material">
+              <texture url="/i01.opencv-03386.png" attach="map" />
+            </meshBasicMaterial>
+          </Box>
+          
+          <OpenCV2 name="i01.opencv@blah" />
+      */}
         </XR>
       </Canvas>
     </>
   )
-}
-
-function OpenCV(props) {
-  // const { subscribe, unsubscribe } = useContext(RuntimeContext)
-  const { subscribe, unsubscribe } = useSubscriptionStore()
-  const [imageData, setImageData] = useState("/Blender.png")
-
-  console.log("OpenCV name", props.name)
-
-  let img = "/Blender.png"
-  let key = "1"
-
-  useFrame(() => {
-    console.log(img)
-  })
-
-  // useEffect(() => {
-  //   const onPublishWebDisplay = (message) => {
-  //     console.log(`Message received: ${message}`)
-  //     // You can perform actions based on the received message here
-  //   }
-
-  //   // Subscribe with a unique name, method, and callback
-  //   subscribe("i01.opencv@blah", "onPublishWebDisplay", onPublishWebDisplay)
-
-  //   return () => {
-  //     // Unsubscribe when the component unmounts
-  //     unsubscribe("i01.opencv@blah", "onPublishWebDisplay", onPublishWebDisplay)
-  //   }
-  // }, [subscribe, unsubscribe])
-
-  const handleCallback = (message) => {
-    // console.log(`received message: ${message}`)
-    let inData = message.data[0]
-    img = inData.data
-    // img = "https://cdn.pixabay.com/photo/2014/06/03/19/38/road-sign-361514_960_720.png"
-    // img = "/logo.png"
-    // key = Date.now() + ""
-    setImageData(img)
-    // You can perform any actions you want with the received message here
-  }
-
-  useEffect(() => {
-    // Define your callback method
-    // Subscribe to a method with a name and provide the callback
-    subscribe("exampleMethod", "exampleMethodName", handleCallback)
-
-    // Unsubscribe when the component unmounts or when no longer needed
-    return () => {
-      unsubscribe("exampleMethod") // Unsubscribe by the method name
-    }
-  }, [subscribe, unsubscribe])
-
-  return (
-    <group>
-      <Image position={[0, 1, -2]} key={key} url={imageData} />
-    </group>
-  )
-}
-
-function Scene() {
-  // const url = "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/Sintel.mp4"
-  const url =
-    "https://pmdvod.nationalgeographic.com/NG_Video/596/311/1370718787631_1542234923394_1370715715931_mp4_video_1024x576_1632000_primary_audio_eng_3.mp4"
-  return (
-    <>
-      <group rotation-y={DEG2RAD * 180}>
-        <Screen src={url} />
-      </group>
-    </>
-  )
-}
-
-function Screen({ src }) {
-  const [video, setVideo] = useState()
-
-  const ratio = 16 / 9
-  const width = 5
-  const radius = 4
-  const z = 4
-
-  const r = useMemo(() => (video ? video.videoWidth / video.videoHeight : ratio), [video, ratio])
-
-  return (
-    <group>
-      <Center top position-z={z}>
-        <CurvedPlane width={width} height={width / r} radius={radius}>
-          <Suspense fallback={<meshStandardMaterial side={THREE.DoubleSide} wireframe />}>
-            <VideoMaterial src={src} setVideo={setVideo} />
-          </Suspense>
-        </CurvedPlane>
-      </Center>
-    </group>
-  )
-}
-
-function VideoMaterial({ src, setVideo }) {
-  const texture = useVideoTexture(src)
-  texture.wrapS = THREE.RepeatWrapping
-  texture.wrapT = THREE.RepeatWrapping
-  texture.repeat.x = -1
-  texture.offset.x = 1
-
-  setVideo?.(texture.image)
-
-  return <meshStandardMaterial side={THREE.DoubleSide} map={texture} toneMapped={false} transparent opacity={0.9} />
 }

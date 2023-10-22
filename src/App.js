@@ -15,16 +15,13 @@ import Geography from "./scenes/geography"
 import { CssBaseline, ThemeProvider } from "@mui/material"
 import { ColorModeContext, useMode } from "./theme"
 import Calendar from "./scenes/calendar/calendar"
-import { RuntimeContextProvider } from "./framework/RuntimeContext"
 import WebXR from "./layout/WebXR"
-
 
 function App() {
   const [theme, colorMode] = useMode()
   const [isSidebar, setIsSidebar] = useState(true)
 
   return (
-    <RuntimeContextProvider>
     <ColorModeContext.Provider value={colorMode}>
       <ThemeProvider theme={theme}>
         <CssBaseline />
@@ -50,7 +47,6 @@ function App() {
         </div>
       </ThemeProvider>
     </ColorModeContext.Provider>
-    </RuntimeContextProvider>
   )
 }
 

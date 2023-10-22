@@ -1,7 +1,5 @@
 import React, { useRef } from "react"
 import { useFrame } from "react-three-fiber"
-import { TextureLoader } from "three"
-import * as THREE from "three"
 
 const VideoPlane = ({ videoFile, position }) => {
   const videoRef = useRef()

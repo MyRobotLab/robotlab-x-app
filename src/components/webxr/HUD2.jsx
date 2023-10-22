@@ -1,32 +1,30 @@
+// TODO use a fastapi router project creator
 import React, { useRef, useEffect, useContext, useState, useMemo, Suspense } from "react"
-// TODO change to zustand store ?
-import { RuntimeContext } from "../framework/RuntimeContext"
-import { PoseText } from "./PoseText"
-import { useFrame, createPortal, useThree, Canvas } from "react-three-fiber"
+import { PoseText } from "../../layout/PoseText"
+import { useFrame, createPortal, useThree } from "@react-three/fiber"
 import { useXR } from "@react-three/xr"
-import { deltaPose, getEvent, getPose } from "../framework/WebXrUtils"
+import { deltaPose, getEvent, getPose } from "../../framework/WebXrUtils"
 import { VRButton, ARButton, XR, Controllers, Hands, useXREvent, useController } from "@react-three/xr"
 import { Pane, Plane, useFBO, OrthographicCamera, Box, Text, Html } from "@react-three/drei"
-import { VideoTexture, UniformsUtils } from "three"
+
 // FIXME - not sure I like absolute paths, this should probably be relative
-
-import * as THREE from "three"
-import { useVideoTexture, Center } from "@react-three/drei"
+import OpenCV2 from "./service/OpenCV2"
+import { useStore } from "../../store/store"
 import CurvedPlane from "./CurvedPlane"
-const { DEG2RAD } = THREE.MathUtils
 
-export const HUD = (props) => {
-  const { sendTo } = useContext(RuntimeContext)
-  // const { controllerData, setControllersData } = useState({})
+export const HUD2 = (props) => {
+  console.info("HUD2 start")
+
+  // const sendTo = useStore((state) => state.sendTo, [ useStore((state) => state.sendTo)])
+  // const sendTo = useStore((state) => state.sendTo, [state.sendTo]);
+  const sendTo = useStore((state) => state.sendTo)
+
   const threshold = 0.01
 
   // Hold state for hovered and clicked events
   const [hovered, hover] = useState(false)
   const [clicked, click] = useState(false)
   const [controllerData, setControllerData] = useState({})
-
-  const url =
-    "https://pmdvod.nationalgeographic.com/NG_Video/596/311/1370718787631_1542234923394_1370715715931_mp4_video_1024x576_1632000_primary_audio_eng_3.mp4"
 
   let precision = 2
 
@@ -138,30 +136,27 @@ export const HUD = (props) => {
   }) // useFrame
 
   function Object(props) {
+    console.info("Object start")
+
     return (
       <group>
-        {/*}
-        <Box {...props} args={[0.4, 0.1, 0.1]}>
-          <meshStandardMaterial color="blue" />
-        </Box>
-        */}
         <PoseText
           poseName="head"
-          position={[0, 0.6, -1.8]}
+          position={[0, -0.7, -1.8]}
           scale={0.04}
           controllerData={controllerData}
           precision={precision}
         />
         <PoseText
           poseName="left"
-          position={[0, 0.4, -1.8]}
+          position={[-0.6, -0.7, -1.8]}
           scale={0.04}
           controllerData={controllerData}
           precision={precision}
         />
         <PoseText
           poseName="right"
-          position={[0, 0.2, -1.8]}
+          position={[0.6, -0.7, -1.8]}
           scale={0.04}
           controllerData={controllerData}
           precision={precision}
@@ -171,91 +166,24 @@ export const HUD = (props) => {
   }
 
   function CameraLinkedObject() {
+    console.info("CameraLinkedObject start")
+
     const camera = useThree((state) => state.camera)
-    return createPortal(<Object position={[0, -2.0, -1]} />, camera)
+    return createPortal(<Object position={[0, 0, 0]} />, camera)
   }
 
+  console.info("HUD2 render")
   return (
     <group>
-      {/*}
-      <video
-        ref={videoRef}
-        autoPlay={true}
-        muted={true}
-        loop={true}
-        crossOrigin="anonymous"
-        src={url}
-        style={{
-          position: "absolute",
-          top: "-100%",
-          left: "-100%",
-          width: "640px",
-          height: "360px",
-        }}
-      />*/}
-
       <mesh
         {...props}
         ref={ref}
-        scale={clicked ? 1.5 : 0.05}
+        scale={[1, 1, 1]}
         onClick={(event) => click(!clicked)}
         onPointerOver={(event) => (event.stopPropagation(), hover(true))}
         onPointerOut={(event) => hover(false)}
       ></mesh>
-      {/*}
-    <boxGeometry args={[1, 1, 1]} />
-    <meshStandardMaterial color={hovered ? 'hotpink' : 'orange'} />
-  */}
-      {/* <Video video={videoRef} /> */}
       <CameraLinkedObject />
     </group>
   )
-}
-
-function Scene() {
-  // const url = "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/Sintel.mp4"
-  const url =
-    "https://pmdvod.nationalgeographic.com/NG_Video/596/311/1370718787631_1542234923394_1370715715931_mp4_video_1024x576_1632000_primary_audio_eng_3.mp4"
-  return (
-    <>
-      <group rotation-y={DEG2RAD * 180}>
-        <Screen src={url} />
-      </group>
-    </>
-  )
-}
-
-function Screen({ src }) {
-  const [video, setVideo] = useState()
-
-  const ratio = 16 / 9
-  const width = 5
-  const radius = 4
-  const z = 4
-
-  const r = useMemo(() => (video ? video.videoWidth / video.videoHeight : ratio), [video, ratio])
-
-  return (
-    <group>
-      <Center top position-z={z}>
-        <CurvedPlane width={width} height={width / r} radius={radius}>
-          <Suspense fallback={<meshStandardMaterial side={THREE.DoubleSide} wireframe />}>
-            <VideoMaterial src={src} setVideo={setVideo} />
-          </Suspense>
-        </CurvedPlane>
-      </Center>
-    </group>
-  )
-}
-
-function VideoMaterial({ src, setVideo }) {
-  const texture = useVideoTexture(src)
-  texture.wrapS = THREE.RepeatWrapping
-  texture.wrapT = THREE.RepeatWrapping
-  texture.repeat.x = -1
-  texture.offset.x = 1
-
-  setVideo?.(texture.image)
-
-  return <meshStandardMaterial side={THREE.DoubleSide} map={texture} toneMapped={false} transparent opacity={0.9} />
 }

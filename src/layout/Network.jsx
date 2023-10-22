@@ -1,4 +1,4 @@
-import React, { useState, useContext } from "react"
+import React, { useState, useEffect } from "react"
 import { Box, Typography, useTheme } from "@mui/material"
 import { DataGrid } from "@mui/x-data-grid"
 import { tokens } from "../theme"
@@ -8,8 +8,8 @@ import AdminPanelSettingsOutlinedIcon from "@mui/icons-material/AdminPanelSettin
 import LockOpenOutlinedIcon from "@mui/icons-material/LockOpenOutlined"
 import SecurityOutlinedIcon from "@mui/icons-material/SecurityOutlined"
 import Header from "../components/Header"
-import { RuntimeContext } from "../framework/RuntimeContext"
 import { JSONTree } from "react-json-tree"
+import { useStore } from "../store/store"
 
 const Network = () => {
   const theme = useTheme()
@@ -40,8 +40,25 @@ const Network = () => {
     },
   ]
 
+  const msg = useStore((state) => state.messages["i01.opencv@vertx-vertx.onWebDisplay"])
+  // const [imageData, setImageData] = useState("/i01.opencv-03386.png")
+  const [imageData, setImageData] = useState(null)
+
+  // useFrame(() => {
+  //   // console.log(img)
+  // })
+
+  useEffect(() => {
+    console.log("OpenCV2 useLayoutEffect")
+    let img = msg?.data[0]?.data
+    if (img) {
+      setImageData(img)
+    }
+  }, [msg])
+
   return (
     <>
+      <img src={imageData} alt="blah" />
       <Box m="20px">
         <Header title="Network" subtitle="Current network details" />
         <Box

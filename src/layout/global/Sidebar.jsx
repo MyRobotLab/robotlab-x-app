@@ -1,7 +1,6 @@
-import React, { useState, useContext } from "react"
+import React, { useState, useEffect } from "react"
 import { ProSidebar, Menu, MenuItem } from "react-pro-sidebar"
 import { Box, IconButton, Typography, useTheme } from "@mui/material"
-import { RuntimeContext } from "../../framework/RuntimeContext"
 import Stack from "@mui/material/Stack"
 import Button from "@mui/material/Button"
 
@@ -26,7 +25,7 @@ import TimelineOutlinedIcon from "@mui/icons-material/TimelineOutlined"
 import MenuOutlinedIcon from "@mui/icons-material/MenuOutlined"
 import MapOutlinedIcon from "@mui/icons-material/MapOutlined"
 import TroubleshootOutlinedIcon from "@mui/icons-material/TroubleshootOutlined"
-import useSubscriptionStore from "../../store/subscriptionStore"
+import { useStore } from "../../store/store"
 
 const Item = ({ title, to, icon, selected, setSelected }) => {
   const theme = useTheme()
@@ -47,11 +46,15 @@ const Item = ({ title, to, icon, selected, setSelected }) => {
 }
 
 const Sidebar = () => {
-  const { connected } = useSubscriptionStore()
+  const { connect, connected } = useStore()
   const theme = useTheme()
   const colors = tokens(theme.palette.mode)
   const [isCollapsed, setIsCollapsed] = useState(true)
   const [selected, setSelected] = useState("Dashboard")
+
+  useEffect(() => {
+    connect()
+  }, [connect])
 
   return (
     <Box
