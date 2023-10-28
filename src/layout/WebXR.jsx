@@ -22,86 +22,10 @@ import * as THREE from "three"
 import OpenCV2 from "../components/webxr/service/OpenCV2"
 import Scene from "../components/webxr/Scene"
 import MJPEGVideoPanel from "../components/MJPEGVideoPanel"
-import WebGLImageRenderer from "./WebGLImageRenderer"
 
 // there should be a s
 
 import ReactPlayer from "react-player"
-
-function MjpegImage(...props) {
-  // // const ref = useRef()
-  // let mpegUrl = null
-  // useFrame(() => {
-  //   // if (ref.current) {
-  //   //   ref.current.url = "http://localhost:8080/?action=stream&tsx=" + new Date().getTime()
-  //   //   ref.current.material.uniforms.map.needsUpdate = true
-  //   // }
-  //   mpegUrl = "http://localhost:8080/?action=stream&tsx=" + new Date().getTime()
-  //   return
-  //   (  <>
-  //     <Text           position={[0, -0.7, -1.8]}
-  //         scale={2.0}> HALLO !!!!! </Text>
-  //   <Image position={[0, 1, -1]} url={mpegUrl} />
-  //   </>
-  //     )
-  // })
-
-  // if (mpegUrl) {
-  //   return
-  //   (  <>
-  //     <Text           position={[0, -0.7, -1.8]}
-  //         scale={2.0}> HALLO !!!!! </Text>
-  //   <Image position={[0, 1, -1]} url={mpegUrl} />
-  //   </>
-  //     )
-  // } else {
-  //   return <></>
-  // }
-
-  const texture = useVideoTexture("http://localhost:8080/?action=stream")
-  return (
-    <>
-      <Image position={[0, 1, -1]} texture={texture} />
-    </>
-  )
-
-  // return <Image position={[0, 1, -1]} ref={ref} url="http://localhost:8080/?action=stream" />
-}
-
-function RotatingBox() {
-  const mesh = useRef()
-
-  // Use the useFrame hook to create a custom animation loop
-  useFrame(() => {
-    // Rotate the mesh by a small amount in each frame
-    mesh.current.rotation.x += 0.01
-    mesh.current.rotation.y += 0.01
-  })
-
-  return (
-    <mesh ref={mesh}>
-      <boxGeometry args={[1, 1, 1]} />
-      {/* <meshStandardMaterial color="orange" /> */}
-      <meshBasicMaterial attach="material">
-        {/* Use the useTexture hook to load an image texture */}
-        <texture
-          url="/logo.jpg" // Replace with the URL of your image
-          attach="map" // Attach the texture to the "map" property of the material
-        />
-      </meshBasicMaterial>
-    </mesh>
-  )
-}
-
-function Cube({ url }) {
-  const texture = useTexture(url)
-  return (
-    <mesh>
-      <meshBasicMaterial map={texture} />
-      <boxGeometry />
-    </mesh>
-  )
-}
 
 export default function WebXR() {
   console.info("WebXR start")
@@ -116,9 +40,7 @@ export default function WebXR() {
         muted={true}
       />
       
-      <video src="/stream.m3u8" autoPlay />
-
-      
+      <video src="/stream.m3u8" autoPlay />      
       <video src="http://localhost:8080/yourstream" autoPlay />
 
       <video src="/output.flv" />
@@ -135,8 +57,6 @@ export default function WebXR() {
       <iframe width="424" height="240" src="https://www.youtube.com/embed/AAKm0jro_hQ" title="test" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe>
       */}
       {/* <iframe width="424" height="240" src="https://www.youtube.com/embed/AAKm0jro_hQ" title="test" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe> */}
-
-      <WebGLImageRenderer imageUrl="http://localhost:8080/?action=stream" />
 
       <VRButton />
       <Canvas>
@@ -163,13 +83,9 @@ export default function WebXR() {
           <ambientLight intensity={0.5} />
           <pointLight position={[5, 5, 5]} />
           <HUD2 />
-          <Scene />
           {/*}
+          <Scene />
           <MjpegImage />
-
-          
-          
-
           
           {/* <RoatatingBox /> 
 

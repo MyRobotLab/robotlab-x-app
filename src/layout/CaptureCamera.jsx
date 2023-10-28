@@ -1,36 +1,17 @@
 import * as THREE from "three"
 import { useState, Suspense, useMemo, useEffect } from "react"
-import { Canvas } from "@react-three/fiber"
-import {
-  useVideoTexture,
-  Grid,
-  Center,
-  AccumulativeShadows,
-  RandomizedLight,
-  Environment,
-  CameraControls,
-} from "@react-three/drei"
-import { VRButton, ARButton, XR, Controllers, Hands, useXREvent, useController } from "@react-three/xr"
-
-import { useControls, button } from "leva"
+import { Canvas, createPortal, useThree } from "@react-three/fiber"
+import { useVideoTexture, Grid, Center, RandomizedLight, Environment, CameraControls } from "@react-three/drei"
+import { VRButton, XR, Controllers, Hands, useXREvent, useController } from "@react-three/xr"
 import { suspend } from "suspend-react"
+import { HUD2 } from "../components/webxr/HUD2"
 
 import CurvedPlane from "./CurvedPlane"
-
 const city = import("@pmndrs/assets/hdri/city.exr")
-const suzi = import(`@pmndrs/assets/models/suzi.glb`)
 
 const { DEG2RAD } = THREE.MathUtils
 
-// List of films from https://gist.github.com/jsturgis/3b19447b304616f18657
-const films = {
-  Sintel: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/Sintel.mp4",
-  "Big Buck Bunny": "http://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4",
-  "Elephant Dream": "http://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ElephantsDream.mp4",
-  "For Bigger Blazes": "http://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4",
-  "For Bigger Joy Rides": "http://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerJoyrides.mp4",
-}
-
+// CameraControls will override webxr controls
 // 4, 3, 12
 export default function CameraCapture() {
   return (
@@ -38,14 +19,17 @@ export default function CameraCapture() {
       <VRButton />
       <Canvas shadows camera={{ position: [4, 3, 0], fov: 60 }}>
         <XR>
+          {/*}
           <Scene />
-
+          */}
+          <LinkedView />
           <Ground />
-          <AccumulativeShadows frames={100} color="#9d4b4b" colorBlend={0.5} alphaTest={0.9} scale={20}>
-            <RandomizedLight amount={8} radius={4} position={[5, 5, -10]} />
-          </AccumulativeShadows>
-
+          <RandomizedLight amount={8} radius={4} position={[5, 5, -10]} />
+          {/*}
           <CameraControls />
+          */}
+          <Controllers />
+          <HUD2 />
           <Environment files={suspend(city).default} />
         </XR>
       </Canvas>
@@ -55,21 +39,10 @@ export default function CameraCapture() {
 
 function Scene() {
   const [stream, setStream] = useState(new MediaStream())
-
-  const { url } = useControls({
-    url: {
-      value: films["Sintel"],
-      options: films,
-    },
-    "getDisplayMedia (only new-window)": button(async (get) => {
-      //const mediaStream = await navigator.mediaDevices.getDisplayMedia({ video: true })
-      setStream(new MediaStream())
-    }),
-  })
-
+  // FIXME (menu) - add again as options
   const [useSTUN, setUseSTUN] = useState(false)
-  let pc = null
 
+  let pc = null
   let protocol = window.location.protocol
   let host = window.location.hostname
   let webrtc_url = protocol + "//" + host + ":8080"
@@ -122,10 +95,13 @@ function Scene() {
   }
 
   function start() {
+    console.info("starting webrtc peer connection negotiation")
     var config = {
       sdpSemantics: "unified-plan",
     }
 
+    // FIXME (menu) - stun
+    // FIXME (menu) - add again as options
     // if (document.getElementById("use-stun").checked) {
     //   config.iceServers = [{ urls: ["stun:stun.l.google.com:19302"] }]
     // }
@@ -134,18 +110,15 @@ function Scene() {
 
     pc.addEventListener("track", function (evt) {
       if (evt.track.kind === "video") {
-        // document.getElementById("video").srcObject = evt.streams[0]
         setStream(evt.streams[0])
       } else {
-        // document.getElementById("audio").srcObject = evt.streams[0]
+        // setAudioStream(evt.streams[0])
       }
     })
-
-    // document.getElementById("start").style.display = "none"
     negotiate()
-    // document.getElementById("stop").style.display = "inline-block"
   }
 
+  // FIXME - renable stop?
   function stop() {
     document.getElementById("stop").style.display = "none"
     setTimeout(function () {
@@ -154,21 +127,14 @@ function Scene() {
   }
 
   useEffect(() => {
+    // start webrtc
     start()
   }, [])
 
-  // start()
-  // <group rotation-y={DEG2RAD * -40}>
-
+  // FIXME - add multiple screens dynamically !
   return (
     <>
-      {/*
       <group rotation-y={DEG2RAD * -180}>
-        <Screen src={url} />
-      </group>
-      */}
-
-      <group rotation-y={DEG2RAD * -160}>
         <Screen src={stream} />
       </group>
     </>
@@ -180,8 +146,8 @@ function Screen({ src }) {
 
   const ratio = 16 / 9
   const width = 5
-  const radius = 4
-  const z = 4
+  const radius = 12
+  const z = 2
 
   const r = useMemo(() => (video ? video.videoWidth / video.videoHeight : ratio), [video, ratio])
 
@@ -200,17 +166,13 @@ function VideoMaterial({ src, setVideo }) {
   const texture = useVideoTexture(src)
   texture.wrapS = THREE.RepeatWrapping
   texture.wrapT = THREE.RepeatWrapping
-  texture.repeat.x = -1
-  texture.offset.x = 1
 
-  setVideo?.(texture.image)
+  // for multiple screens
+  // texture.repeat.x = -1
+  // texture.offset.x = 1
 
-  return <meshStandardMaterial side={THREE.DoubleSide} map={texture} toneMapped={false} transparent opacity={0.9} />
+  return <meshStandardMaterial side={THREE.DoubleSide} map={texture} toneMapped={false} transparent />
 }
-
-//
-//
-//
 
 function Ground() {
   const gridConfig = {
@@ -226,4 +188,11 @@ function Ground() {
     infiniteGrid: true,
   }
   return <Grid position={[0, -0.01, 0]} args={[10.5, 10.5]} {...gridConfig} />
+}
+
+function LinkedView() {
+  console.info("LinedView start")
+
+  const camera = useThree((state) => state.camera)
+  return createPortal(<Scene position={[0, 0, 0]} />, camera)
 }
