@@ -1,5 +1,5 @@
 import * as THREE from "three"
-import { useState, Suspense, useMemo } from "react"
+import { useState, Suspense, useMemo, useEffect } from "react"
 import { Canvas } from "@react-three/fiber"
 import {
   useVideoTexture,
@@ -34,21 +34,22 @@ const films = {
 // 4, 3, 12
 export default function CameraCapture() {
   return (
-    <><VRButton/>
-    <Canvas shadows camera={{ position: [4, 3, 0], fov: 60 }}>
-      <XR>
-      <Scene />
+    <>
+      <VRButton />
+      <Canvas shadows camera={{ position: [4, 3, 0], fov: 60 }}>
+        <XR>
+          <Scene />
 
-      <Ground />
-      <AccumulativeShadows frames={100} color="#9d4b4b" colorBlend={0.5} alphaTest={0.9} scale={20}>
-        <RandomizedLight amount={8} radius={4} position={[5, 5, -10]} />
-      </AccumulativeShadows>
+          <Ground />
+          <AccumulativeShadows frames={100} color="#9d4b4b" colorBlend={0.5} alphaTest={0.9} scale={20}>
+            <RandomizedLight amount={8} radius={4} position={[5, 5, -10]} />
+          </AccumulativeShadows>
 
-      <CameraControls />
-      <Environment files={suspend(city).default} />
+          <CameraControls />
+          <Environment files={suspend(city).default} />
         </XR>
-    </Canvas>
-      </>
+      </Canvas>
+    </>
   )
 }
 
@@ -66,13 +67,106 @@ function Scene() {
     }),
   })
 
+  const [useSTUN, setUseSTUN] = useState(false)
+  let pc = null
+
+  let protocol = window.location.protocol
+  let host = window.location.hostname
+  let webrtc_url = protocol + "//" + host + ":8080"
+
+  function negotiate() {
+    pc.addTransceiver("video", { direction: "recvonly" })
+    pc.addTransceiver("audio", { direction: "recvonly" })
+    return pc
+      .createOffer()
+      .then(function (offer) {
+        return pc.setLocalDescription(offer)
+      })
+      .then(function () {
+        return new Promise(function (resolve) {
+          if (pc.iceGatheringState === "complete") {
+            resolve()
+          } else {
+            function checkState() {
+              if (pc.iceGatheringState === "complete") {
+                pc.removeEventListener("icegatheringstatechange", checkState)
+                resolve()
+              }
+            }
+            pc.addEventListener("icegatheringstatechange", checkState)
+          }
+        })
+      })
+      .then(function () {
+        var offer = pc.localDescription
+        return fetch(`${webrtc_url}/offer`, {
+          body: JSON.stringify({
+            sdp: offer.sdp,
+            type: offer.type,
+          }),
+          headers: {
+            "Content-Type": "application/json",
+          },
+          method: "POST",
+        })
+      })
+      .then(function (response) {
+        return response.json()
+      })
+      .then(function (answer) {
+        return pc.setRemoteDescription(answer)
+      })
+      .catch(function (e) {
+        alert(e)
+      })
+  }
+
+  function start() {
+    var config = {
+      sdpSemantics: "unified-plan",
+    }
+
+    // if (document.getElementById("use-stun").checked) {
+    //   config.iceServers = [{ urls: ["stun:stun.l.google.com:19302"] }]
+    // }
+
+    pc = new RTCPeerConnection(config)
+
+    pc.addEventListener("track", function (evt) {
+      if (evt.track.kind === "video") {
+        // document.getElementById("video").srcObject = evt.streams[0]
+        setStream(evt.streams[0])
+      } else {
+        // document.getElementById("audio").srcObject = evt.streams[0]
+      }
+    })
+
+    // document.getElementById("start").style.display = "none"
+    negotiate()
+    // document.getElementById("stop").style.display = "inline-block"
+  }
+
+  function stop() {
+    document.getElementById("stop").style.display = "none"
+    setTimeout(function () {
+      pc.close()
+    }, 500)
+  }
+
+  useEffect(() => {
+    start()
+  }, [])
+
+  // start()
   // <group rotation-y={DEG2RAD * -40}>
 
   return (
     <>
+      {/*
       <group rotation-y={DEG2RAD * -180}>
         <Screen src={url} />
       </group>
+      */}
 
       <group rotation-y={DEG2RAD * -160}>
         <Screen src={stream} />
