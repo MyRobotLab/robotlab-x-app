@@ -156,6 +156,21 @@ const Sidebar = () => {
               <img src={`../../assets/vr-lite.png`} alt="WebXR" width="22" />
             </Button>
 
+            <Button component={Link} to="/webrtc">
+              &nbsp;
+              <img src={`../../assets/vr-lite.png`} alt="WebRTC" width="22" />
+            </Button>
+
+            <Button component={Link} to="/videotextureexample">
+              &nbsp;
+              <img src={`../../assets/vr-lite.png`} alt="WebRTC" width="22" />
+            </Button>
+
+            <Button component={Link} to="/capturecamera">
+              &nbsp;
+              <img src={`../../assets/vr-lite.png`} alt="WebRTC" width="22" />
+            </Button>
+
             {/* 
             <Typography
               variant="h6"

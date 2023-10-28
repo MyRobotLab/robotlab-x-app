@@ -3,6 +3,12 @@ import { Url } from "url"
 import { create } from "zustand"
 
 const store = (set, get) => ({
+  registry: {
+    "i01.webxr": { data: "Service 1 Data" },
+    runtime: { data: "Service 2 Data" },
+    // Add more services and data here
+  },
+
   /**
    * @type {WebSocket} socket - The websocket connection
    */
@@ -128,7 +134,7 @@ const store = (set, get) => ({
     msg.encoding = "json"
     if (msg.data) {
       for (let i = 0; i < msg.data.length; i++) {
-          msg.data[i] = JSON.stringify(msg.data[i])
+        msg.data[i] = JSON.stringify(msg.data[i])
       }
     }
 

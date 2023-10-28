@@ -24,6 +24,8 @@ import Scene from "../components/webxr/Scene"
 import MJPEGVideoPanel from "../components/MJPEGVideoPanel"
 import WebGLImageRenderer from "./WebGLImageRenderer"
 
+// there should be a s
+
 import ReactPlayer from "react-player"
 
 function MjpegImage(...props) {
