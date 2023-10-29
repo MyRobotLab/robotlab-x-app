@@ -1,18 +1,16 @@
-import * as React from 'react'
-import Tabs from '@mui/material/Tabs'
-import Tab from '@mui/material/Tab'
-import Servo from "../service/Servo"
-import { Box, Typography, useTheme } from "@mui/material"
-import { tokens } from "../theme"
+import React, { useState } from "react";
+import Paper from "@mui/material/Paper";
+import Box from "@mui/material/Box";
+import Tabs from "@mui/material/Tabs";
+import Tab from "@mui/material/Tab";
+import { useTheme } from "@mui/material/styles";
+import Typography from "@mui/material/Typography";
+import { tokens } from "../theme";
+import { useStore } from "../store/store";
 
-// interface TabPanelProps {
-//   children?: React.ReactNode
-//   index: number
-//   value: number
-// }
 
-function TabPanel(props) {
-  const { children, value, index, ...other } = props
+function CustomTabPanel(props: TabPanelProps) {
+  const { children, value, index, ...other } = props;
 
   return (
     <div
@@ -24,62 +22,66 @@ function TabPanel(props) {
     >
       {value === index && (
         <Box sx={{ p: 3 }}>
-          {/* <Typography>{children}</Typography> <- renders <p>*/}
-          {children}
+          <Typography>{children}</Typography>
         </Box>
       )}
     </div>
-  )
+  );
 }
 
-function a11yProps(index) {
-  return {
-    id: `simple-tab-${index}`,
-    'aria-controls': `simple-tabpanel-${index}`,
-  }
-}
+
 
 export default function ServiceTabs() {
-  const [value, setValue] = React.useState(0)
+  const [activeTab, setActiveTab] = useState(0); // Initialize activeTab with the index of the first tab
+  const { registry } = useStore();
+  const theme = useTheme();
+  const colors = tokens(theme.palette.mode);
 
-  const handleChange = (event, newValue) => {
-    setValue(newValue)
-  }
+  // Function to switch between tabs
+  const changeTab = (event, newValue) => {
+    setActiveTab(newValue);
+  };
 
-  const theme = useTheme()
-  const colors = tokens(theme.palette.mode)
+  const tabKeys = Object.keys(registry);
 
-
-  
   return (
-    <Box 
-    sx={{
-      "& .MuiButtonBase-root": {
-        border: "none",
-        borderBottom: "none",
-        color: colors.greenAccent[300],
-        backgroundColor: colors.blueAccent[700],
-      }
-    }}
-
-    >
-      <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
-        <Tabs value={value} onChange={handleChange} aria-label="basic tabs example">
-          <Tab label="runtime" {...a11yProps(0)} />
-          <Tab label="servo" {...a11yProps(1)} />
-          <Tab label="arduino" {...a11yProps(2)} />
-        </Tabs>
+    <div>
+      <Box
+        sx={{
+          "& .MuiButtonBase-root": {
+            border: "none",
+            borderBottom: "none",
+            color: colors.greenAccent[300],
+            backgroundColor: colors.blueAccent[700],
+          },
+        }}
+      >
+        <Paper square>
+          <Tabs
+            value={activeTab}
+            indicatorColor="primary"
+            textColor="primary"
+            onChange={changeTab}
+          >
+            {tabKeys.map((key, index) => (
+              <Tab label={key} key={index} />
+            ))}
+          </Tabs>
+        </Paper>
+        <div className="tab-panels">
+          {tabKeys.map((key, index) => (
+            <CustomTabPanel
+              key={key}
+              value={activeTab}
+              index={index}
+            >
+              <Typography variant="body2" component="div">
+                <pre>{JSON.stringify(registry[key], null, 2)}</pre>
+              </Typography>
+            </CustomTabPanel>
+          ))}
+        </div>
       </Box>
-      <TabPanel value={value} index={0}>
-        Runtime Panel
-      </TabPanel>
-      <TabPanel value={value} index={1}>
-      Servo Panel
-      <div><Servo/></div>
-      </TabPanel>
-      <TabPanel value={value} index={2}>
-      Arduino Panel
-      </TabPanel>
-    </Box>
-  )
+    </div>
+  );
 }

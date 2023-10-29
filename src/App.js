@@ -16,9 +16,6 @@ import { CssBaseline, ThemeProvider } from "@mui/material"
 import { ColorModeContext, useMode } from "./theme"
 import Calendar from "./scenes/calendar/calendar"
 import WebXR from "./layout/WebXR"
-import WebRTC from "./layout/WebRTC"
-import VideoTextureExample from "./layout/VideoTextureExample"
-import CaptureCamera from "./layout/CaptureCamera"
 
 function App() {
   const [theme, colorMode] = useMode()
@@ -38,9 +35,6 @@ function App() {
               <Route path="/graph" element={<Graph />} />
               <Route path="/network" element={<Network />} />
               <Route path="/webxr" element={<WebXR />} />
-              <Route path="/webrtc" element={<WebRTC />} />
-              <Route path="/videotextureexample" element={<VideoTextureExample />} />
-              <Route path="/capturecamera" element={<CaptureCamera />} />
               <Route path="/bar" element={<Bar />} />
               <Route path="/form" element={<Form />} />
               <Route path="/pie" element={<Pie />} />

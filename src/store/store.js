@@ -3,10 +3,10 @@ import { Url } from "url"
 import { create } from "zustand"
 
 const store = (set, get) => ({
+
+  id : "vertx-gui",
+  
   registry: {
-    "i01.webxr": { data: "Service 1 Data" },
-    runtime: { data: "Service 2 Data" },
-    // Add more services and data here
   },
 
   /**
@@ -35,7 +35,7 @@ const store = (set, get) => ({
       const hostname = urlParts.hostname
       const port = urlParts.port || (scheme === "https" ? "443" : "80")
       const wsSchema = scheme === "https" ? "wss" : "ws"
-      const wsUrl = `wss://${hostname}:8443/api/messages?user=root&pwd=pwd&session_id=2309adf3dlkdk&id=webgui-client`
+      const wsUrl = `wss://${hostname}:8443/api/messages?user=root&pwd=pwd&session_id=2309adf3dlkdk&id=${get().id}`
       url = wsUrl
       console.log(wsUrl)
     }
@@ -60,6 +60,16 @@ const store = (set, get) => ({
       set({
         connecting: false,
       })
+
+      // either create service call or
+      // you'll need to register, subscribe and send
+
+      // connected to a runtime instance
+
+      // subscribe and prepare to query myrobotlab instance
+      get().subscribeTo("runtime", "getServiceNames")
+      get().subscribeTo("runtime", "getService")
+      get().sendTo("runtime", "getServiceNames")
     }
 
     socket.onclose = () => {
@@ -90,10 +100,22 @@ const store = (set, get) => ({
 
       try {
         let key = msg.name + "." + msg.method
-        // console.info("onmessage", key)
-        if (key != "i01.opencv@vertx-vertx.onWebDisplay") {
-          return
+        
+        // handle the initial query of services
+        if (key == `runtime@${get().id}.onServiceNames`) {
+          // ask for each service
+          for (const serviceName of msg.data[0]) {
+            console.log(serviceName);
+            get().sendTo("runtime", "getService", serviceName)
+          }
         }
+
+        // populate the registry
+        if (key == `runtime@${get().id}.onService`) {
+          get().registry[msg.data[0].name + '@' + msg.data[0].id] = msg.data[0]
+        }
+
+
         // store the message
         set((state) => ({
           messages: {
@@ -146,6 +168,14 @@ const store = (set, get) => ({
     var args = Array.prototype.slice.call(arguments, 2)
     var msg = get().createMessage(name, method, args)
     msg.sendingMethod = "sendTo"
+    get().sendMessage(msg)
+  },
+
+  subscribeTo: function (name, method) {
+    // FIXME- merge more args
+    var args = Array.prototype.slice.call(arguments, 1)
+    var msg = get().createMessage(name, "addListener", [method, "runtime" + "@" + get().id])
+    msg.sendingMethod = "subscribeTo"
     get().sendMessage(msg)
   },
 
