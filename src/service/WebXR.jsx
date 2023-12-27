@@ -1,38 +1,40 @@
 import * as THREE from "three"
 import { useState, Suspense, useMemo, useEffect } from "react"
 import { Canvas, createPortal, useThree } from "@react-three/fiber"
-import { useVideoTexture, Grid, Center, RandomizedLight, Environment, CameraControls } from "@react-three/drei"
+import { useAspect, useVideoTexture, Grid, Center, RandomizedLight, Environment, CameraControls } from "@react-three/drei"
 import { VRButton, XR, Controllers, Hands, useXREvent, useController } from "@react-three/xr"
 import { suspend } from "suspend-react"
 import { HUD2 } from "../components/webxr/HUD2"
 
-import CurvedPlane from "./CurvedPlane"
+import CurvedPlane from "../components/webxr/CurvedPlane"
 const city = import("@pmndrs/assets/hdri/city.exr")
 
 const { DEG2RAD } = THREE.MathUtils
 
 // CameraControls will override webxr controls
 // 4, 3, 12
-export default function WebXR() {
+export default function WebXR(props) {
   return (
     <>
       <VRButton />
-      <Canvas shadows camera={{ position: [4, 3, 0], fov: 60 }}>
+      <div style={{ width: "100vw", height: "100vh" }}>
+      <Canvas camera={{ position: [4, 3, 0], fov: 60 }}>
         <XR>
-          {/*}
+          {/*
           <Scene />
           */}
           <LinkedView />
           <Ground />
-          <RandomizedLight amount={8} radius={4} position={[5, 5, -10]} />
+          <RandomizedLight amount={8} radius={4}/>
           {/*}
           <CameraControls />
           */}
           <Controllers />
-          <HUD2 name="webxr" />
+          <HUD2 name={props.name} />
           <Environment files={suspend(city).default} />
         </XR>
       </Canvas>
+        </div>
     </>
   )
 }
@@ -134,12 +136,41 @@ function Scene() {
   // FIXME - add multiple screens dynamically !
   return (
     <>
-      <group rotation-y={DEG2RAD * -180}>
+      {/*
+      <group position={[0, -2, 0]} rotation-y={DEG2RAD * -180}>
         <Screen src={stream} />
       </group>
+      */}
+      <group position={[0, 0, -35]}>
+              <Suspense fallback={<meshStandardMaterial side={THREE.DoubleSide} wireframe />}>
+
+      <Screen2  src={stream}  />
+                </Suspense>
+      </group>
+      
     </>
   )
 }
+
+
+function Screen2({ src, setVideo }) {
+
+  const size = useAspect(1280, 720)
+  const texture = useVideoTexture(src)
+
+  return (
+    <mesh scale={size}>
+      <planeGeometry/>
+      {/*
+       <meshBasicMaterial map={texture} toneMapped={false} />
+       */}
+      <meshStandardMaterial side={THREE.DoubleSide} map={texture} toneMapped={false} transparent />
+        
+    </mesh>
+  )
+
+}
+
 
 function Screen({ src }) {
   const [video, setVideo] = useState()
@@ -187,7 +218,7 @@ function Ground() {
     followCamera: false,
     infiniteGrid: true,
   }
-  return <Grid position={[0, -0.01, 0]} args={[10.5, 10.5]} {...gridConfig} />
+  return <Grid position={[0, -20, 0]} args={[10.5, 10.5]} {...gridConfig} />
 }
 
 function LinkedView() {

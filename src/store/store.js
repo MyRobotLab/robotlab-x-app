@@ -3,11 +3,12 @@ import { Url } from "url"
 import { create } from "zustand"
 
 const store = (set, get) => ({
+  // id of this process
+  id: "vertx-gui",
 
-  id : "vertx-gui",
-  
-  registry: {
-  },
+  defaultRemoteId:null,
+
+  registry: {},
 
   /**
    * @type {WebSocket} socket - The websocket connection
@@ -100,21 +101,26 @@ const store = (set, get) => ({
 
       try {
         let key = msg.name + "." + msg.method
-        
+
         // handle the initial query of services
         if (key == `runtime@${get().id}.onServiceNames`) {
+          // first message returned - make it the defaultRemoteId
+          const atIndex = msg.sender.indexOf('@');
+          if (atIndex !== -1) {
+              set({defaultRemoteId:msg.sender.substring(atIndex + 1)})
+          }
+          
           // ask for each service
           for (const serviceName of msg.data[0]) {
-            console.log(serviceName);
+            console.log(serviceName)
             get().sendTo("runtime", "getService", serviceName)
           }
         }
 
         // populate the registry
         if (key == `runtime@${get().id}.onService`) {
-          get().registry[msg.data[0].name + '@' + msg.data[0].id] = msg.data[0]
+          get().registry[msg.data[0].name + "@" + msg.data[0].id] = msg.data[0]
         }
-
 
         // store the message
         set((state) => ({

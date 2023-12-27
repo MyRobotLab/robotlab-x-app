@@ -13,7 +13,8 @@ import { useStore } from "../../store/store"
 import CurvedPlane from "./CurvedPlane"
 
 export const HUD2 = (props) => {
-  console.info("HUD2 start")
+  console.info("HUD2 start", props.name)
+  let serviceName = props.name
 
   // const sendTo = useStore((state) => state.sendTo, [ useStore((state) => state.sendTo)])
   // const sendTo = useStore((state) => state.sendTo, [state.sendTo]);
@@ -54,12 +55,12 @@ export const HUD2 = (props) => {
 
   const handleSqeezeStart = (xrEvent) => {
     let event = getEvent(xrEvent)
-    sendTo("webxr", "publishEvent", event)
+    sendTo(serviceName, "publishEvent", event)
   }
 
   const handleSqueezeEnd = (xrEvent) => {
     let event = getEvent(xrEvent)
-    sendTo("webxr", "publishEvent", event)
+    sendTo(serviceName, "publishEvent", event)
   }
 
   useXREvent("squeezestart", handleSqeezeStart)
@@ -68,7 +69,7 @@ export const HUD2 = (props) => {
   // callback only happens when in VR
   // data changes only happen when in VR
   useFrame(() => {
-    if (controllers.length >= 2) {
+    if (controllers.length >= 2 && session) {
       // left ... maybe
       let p = left.controller.position
       let r = left.controller.rotation
@@ -80,7 +81,7 @@ export const HUD2 = (props) => {
         let data = { left: pose }
         setControllerData((controllerData) => ({ ...controllerData, ...data }))
         console.log(controllerData)
-        sendTo("webxr", "publishPose", pose)
+        sendTo(serviceName, "publishPose", pose)
       }
 
       // right ... maybe
@@ -94,13 +95,13 @@ export const HUD2 = (props) => {
         let data = { right: pose }
         setControllerData((controllerData) => ({ ...controllerData, ...data }))
         console.log(controllerData)
-        sendTo("webxr", "publishPose", pose)
+        sendTo(serviceName, "publishPose", pose)
       }
       // console.info(controllers[1].controller.position)
       // console.info(left.position)
     }
 
-    if (player) {
+    if (player && session) {
       // head ... maybe
       let p = player.children[0].position
       let r = player.children[0].rotation
@@ -111,7 +112,7 @@ export const HUD2 = (props) => {
       if (deltaPose(pose, controllerData[pose.name], threshold)) {
         let data = { head: pose }
         setControllerData((controllerData) => ({ ...controllerData, ...data }))
-        sendTo("webxr", "publishPose", pose)
+        sendTo(serviceName, "publishPose", pose)
       }
     }
 

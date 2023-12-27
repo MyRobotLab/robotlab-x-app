@@ -31,7 +31,8 @@ function App() {
             <Topbar setIsSidebar={setIsSidebar} />
             <Routes>
               <Route path="/" element={<Dashboard />} />
-              <Route path="/tabs" element={<TabLayout />} />
+              <Route path="/tabs" element={<TabLayout tabName="" />} />
+              <Route path="/tabs/:tabName" element={<TabLayout />} />
               <Route path="/graph" element={<Graph />} />
               <Route path="/network" element={<Network />} />
               <Route path="/webxr" element={<WebXR />} />

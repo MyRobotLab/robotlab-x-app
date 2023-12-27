@@ -42,8 +42,7 @@ const TabLayout = () => {
 
   return (
     <>
-      <ServiceTabs></ServiceTabs>
-
+      <ServiceTabs />
       <div>
         {/*Last Message: <JSONTree data={message} /> */}
         <div>{/* <input type="text" value={messageInput} onChange={handleMessageChange} /> */}</div>
