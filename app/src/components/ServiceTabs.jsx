@@ -38,7 +38,7 @@ function ServiceTabLabel(props) {
   return (
     <div>
       <img
-        src={`/service/${service.simpleName}/${service.simpleName}.png`}
+        src={`service/${service.simpleName}/${service.simpleName}.png`}
         alt={service.simpleName}
         style={{ width: "16px", height: "16px" }}
       />
@@ -46,7 +46,7 @@ function ServiceTabLabel(props) {
     </div>
   )
 }
-
+// FIXME - put in own file
 function ServicePage(props) {
   const { registry } = useStore()
   let service = registry[props.service]
@@ -54,6 +54,8 @@ function ServicePage(props) {
   let type = service.simpleName
   if (service.simpleName === "WebXR") {
     type = "WebXR"
+  } else if (service.simpleName === "Runtime") {
+    type = "Runtime"
   } else {
     type = "Servo"
   }
@@ -70,7 +72,7 @@ function ServicePage(props) {
   return (
     <>
       {service.name}
-      <AsyncPage page={type} name={service.name} />
+      <AsyncPage page={type} name={props.service} service={service} />
     </>
   )
 }
@@ -84,7 +86,7 @@ export default function ServiceTabs() {
   const nameToIndex = {}
 
   const location = useLocation()
-  const currentTab = location.pathname.split("/").pop() + '@' + defaultRemoteId
+  const currentTab = location.pathname.split("/").pop() + "@" + defaultRemoteId
 
   // Function to switch between tabs
   const changeTab = (event, newValue) => {
@@ -93,8 +95,8 @@ export default function ServiceTabs() {
 
   // FIXME - put tabKeys in useState
   const tabKeys = Object.keys(registry)
-  if (tabKeys && tabKeys.length){
-    console.info('here')
+  if (tabKeys && tabKeys.length) {
+    //console.info("here")
   }
   // tabKeys.map((key, index) => (nameToIndex[key] = index))
 
@@ -109,7 +111,7 @@ export default function ServiceTabs() {
 
   useEffect(() => {
     const test = nameToIndex[currentTab]
-    setActiveTab(13)
+    // setActiveTab(2)
   }, []) // [tabKeys]
 
   return (
@@ -121,7 +123,7 @@ export default function ServiceTabs() {
         renderOption={(props, option) => (
           <li {...props}>
             <img
-              src={`/service/${option.simpleName}/${option.simpleName}.png`}
+              src={`service/${option.simpleName}/${option.simpleName}.png`}
               alt={option.simpleName}
               style={{ width: 24, height: 24, marginRight: 8 }}
             />

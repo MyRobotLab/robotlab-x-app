@@ -1,13 +1,15 @@
 // store.js
-import { Url } from "url"
 import { create } from "zustand"
 
 const store = (set, get) => ({
   // id of this process
   id: "vertx-gui",
 
-  defaultRemoteId:null,
+  defaultRemoteId: null,
 
+  /**
+   * dictionary of services with last known state
+   */
   registry: {},
 
   /**
@@ -36,7 +38,9 @@ const store = (set, get) => ({
       const hostname = urlParts.hostname
       const port = urlParts.port || (scheme === "https" ? "443" : "80")
       const wsSchema = scheme === "https" ? "wss" : "ws"
-      const wsUrl = `wss://${hostname}:8443/api/messages?user=root&pwd=pwd&session_id=2309adf3dlkdk&id=${get().id}`
+      const wsUrl = `${wsSchema}://${hostname}:8443/api/messages?user=root&pwd=pwd&session_id=2309adf3dlkdk&id=${
+        get().id
+      }`
       url = wsUrl
       console.log(wsUrl)
     }
@@ -103,22 +107,22 @@ const store = (set, get) => ({
         let key = msg.name + "." + msg.method
 
         // handle the initial query of services
-        if (key == `runtime@${get().id}.onServiceNames`) {
+        if (key === `runtime@${get().id}.onServiceNames`) {
           // first message returned - make it the defaultRemoteId
-          const atIndex = msg.sender.indexOf('@');
+          const atIndex = msg.sender.indexOf("@")
           if (atIndex !== -1) {
-              set({defaultRemoteId:msg.sender.substring(atIndex + 1)})
+            set({ defaultRemoteId: msg.sender.substring(atIndex + 1) })
           }
-          
+
           // ask for each service
           for (const serviceName of msg.data[0]) {
-            console.log(serviceName)
+            console.info(serviceName)
             get().sendTo("runtime", "getService", serviceName)
           }
         }
 
         // populate the registry
-        if (key == `runtime@${get().id}.onService`) {
+        if (key === `runtime@${get().id}.onService`) {
           get().registry[msg.data[0].name + "@" + msg.data[0].id] = msg.data[0]
         }
 

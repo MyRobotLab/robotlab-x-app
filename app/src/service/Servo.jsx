@@ -13,7 +13,7 @@ export default function Servo(props) {
   return (
     <>
       {props.name}
-      <Slider size="small" defaultValue={70} aria-label="Small" valueLabelDisplay="auto" />
+      <Slider size="small" defaultValue={70} aria-label="Small" valueLabelDisplay="auto" track={false} />
       <Slider defaultValue={50} aria-label="Default" valueLabelDisplay="auto" />
     </>
   )

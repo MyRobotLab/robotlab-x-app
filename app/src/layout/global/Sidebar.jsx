@@ -85,7 +85,7 @@ const Sidebar = () => {
                 width: "22px",
                 alighn: "center",
               }}
-              src={connected ? `../../assets/green.png` : `../../assets/red.png`}
+              src={connected ? `assets/green.png` : `assets/red.png`}
             />
           </Box>
 
@@ -117,7 +117,7 @@ const Sidebar = () => {
                   alt="profile-user"
                   width="100px"
                   height="100px"
-                  src={`../../assets/logo.png`}
+                  src={`assets/logo.png`}
                   style={{ cursor: "pointer", borderRadius: "50%" }}
                 />
               </Box>
@@ -153,7 +153,7 @@ const Sidebar = () => {
 
             <Button component={Link} to="/webxr">
               &nbsp;
-              <img src={`../../assets/vr-lite.png`} alt="WebXR" width="22" />
+              <img src={`assets/vr-lite.png`} alt="WebXR" width="22" />
             </Button>
 
             {/* 
