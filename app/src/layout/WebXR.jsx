@@ -72,7 +72,7 @@ function Scene() {
       })
       .then(function () {
         var offer = pc.localDescription
-        return fetch(`${webrtc_url}/offer`, {
+        return fetch(`/offer`, {
           body: JSON.stringify({
             sdp: offer.sdp,
             type: offer.type,

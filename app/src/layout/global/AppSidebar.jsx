@@ -1,11 +1,12 @@
 import React, { useState, useEffect } from "react"
-import { ProSidebar, Menu, MenuItem } from "react-pro-sidebar"
+// import { ProSidebar, Menu, MenuItem } from "react-pro-sidebar"
+import { Sidebar, Menu, MenuItem, SubMenu } from "react-pro-sidebar"
 import { Box, IconButton, Typography, useTheme } from "@mui/material"
 import Stack from "@mui/material/Stack"
 import Button from "@mui/material/Button"
 
 import { Link } from "react-router-dom"
-import "react-pro-sidebar/dist/css/styles.css"
+// import "react-pro-sidebar/dist/css/styles.css"
 import { tokens } from "../../theme"
 
 // icons
@@ -22,6 +23,9 @@ import HelpOutlineOutlinedIcon from "@mui/icons-material/HelpOutlineOutlined"
 import BarChartOutlinedIcon from "@mui/icons-material/BarChartOutlined"
 import PieChartOutlineOutlinedIcon from "@mui/icons-material/PieChartOutlineOutlined"
 import TimelineOutlinedIcon from "@mui/icons-material/TimelineOutlined"
+
+import vrIcon from "./vr-lite.png"
+
 import MenuOutlinedIcon from "@mui/icons-material/MenuOutlined"
 import MapOutlinedIcon from "@mui/icons-material/MapOutlined"
 import TroubleshootOutlinedIcon from "@mui/icons-material/TroubleshootOutlined"
@@ -45,7 +49,7 @@ const Item = ({ title, to, icon, selected, setSelected }) => {
   )
 }
 
-const Sidebar = () => {
+const AppSidebar = () => {
   const { connect, connected } = useStore()
   const theme = useTheme()
   const colors = tokens(theme.palette.mode)
@@ -76,7 +80,7 @@ const Sidebar = () => {
         },
       }}
     >
-      <ProSidebar collapsed={isCollapsed}>
+      <Sidebar collapsed={isCollapsed}>
         <Menu iconShape="square">
           <Box align="center">
             <img
@@ -132,100 +136,32 @@ const Sidebar = () => {
             </Box>
           )}
 
-          <Box paddingLeft={isCollapsed ? undefined : "10%"}>
-            <Item
-              title="Dashboard"
-              to="/"
-              icon={<DashboardOutlinedIcon />}
-              selected={selected}
-              setSelected={setSelected}
-            />
-            <Item title="Tabs" to="/tabs" icon={<TabOutlinedIcon />} selected={selected} setSelected={setSelected} />
-            <Item title="Graph" to="/graph" icon={<HubOutlinedIcon />} selected={selected} setSelected={setSelected} />
+          <MenuItem component={<Link to="/" />} icon={<DashboardOutlinedIcon />}>
+            Dashboard
+          </MenuItem>
 
-            <Item
-              title="Network and Diagnostics"
-              to="/network"
-              icon={<TroubleshootOutlinedIcon />}
-              selected={selected}
-              setSelected={setSelected}
-            />
+          <MenuItem component={<Link to="/tabs" />} icon={<TabOutlinedIcon />}>
+            Tabs
+          </MenuItem>
 
-            <Button component={Link} to="/webxr">
-              &nbsp;
-              <img src={`assets/vr-lite.png`} alt="WebXR" width="22" />
-            </Button>
+          <MenuItem component={<Link to="/graph" />} icon={<HubOutlinedIcon />}>
+            Graph
+          </MenuItem>
 
-            {/* 
-            <Typography
-              variant="h6"
-              color={colors.grey[300]}
-              sx={{ m: "15px 0 5px 20px" }}
-            >
-              Pages
-            </Typography>
-            <Item
-              title="Profile Form"
-              to="/form"
-              icon={<PersonOutlinedIcon />}
-              selected={selected}
-              setSelected={setSelected}
-            />
-            <Item
-              title="Calendar"
-              to="/calendar"
-              icon={<CalendarTodayOutlinedIcon />}
-              selected={selected}
-              setSelected={setSelected}
-            />
-            <Item
-              title="FAQ Page"
-              to="/faq"
-              icon={<HelpOutlineOutlinedIcon />}
-              selected={selected}
-              setSelected={setSelected}
-            />
+          <MenuItem component={<Link to="/network" />} icon={<TroubleshootOutlinedIcon />}>
+            Network and Diagnostics
+          </MenuItem>
 
-            <Typography
-              variant="h6"
-              color={colors.grey[300]}
-              sx={{ m: "15px 0 5px 20px" }}
-            >
-              Charts
-            </Typography>
-            <Item
-              title="Bar Chart"
-              to="/bar"
-              icon={<BarChartOutlinedIcon />}
-              selected={selected}
-              setSelected={setSelected}
-            />
-            <Item
-              title="Pie Chart"
-              to="/pie"
-              icon={<PieChartOutlineOutlinedIcon />}
-              selected={selected}
-              setSelected={setSelected}
-            />
-            <Item
-              title="Line Chart"
-              to="/line"
-              icon={<TimelineOutlinedIcon />}
-              selected={selected}
-              setSelected={setSelected}
-            />
-            <Item
-              title="Geography Chart"
-              to="/geography"
-              icon={<MapOutlinedIcon />}
-              selected={selected}
-              setSelected={setSelected}
-            /> */}
-          </Box>
+          <MenuItem component={<Link to="/webxr" />} icon={<TroubleshootOutlinedIcon />}>
+            <img src={`assets/vr-lite.png`} alt="WebXR" width="22" />
+            WebXR
+          </MenuItem>
+
+         
         </Menu>
-      </ProSidebar>
+      </Sidebar>
     </Box>
   )
 }
 
-export default Sidebar
+export default AppSidebar
