@@ -7,16 +7,16 @@ module.exports = function (app) {
       // target: "http://localhost:8888",
       target: "https://localhost:8443",
       changeOrigin: true,
-      ws: true,
+      // ws: true,
       secure: false,
     })
   )
   app.use(
     "/offer",
     createProxyMiddleware({
-      target: "https://localhost:8080", // webcam.py
+      target: "http://localhost:8080", // webcam.py
       changeOrigin: true,
-      ws: true,
+      // ws: true,
       secure: false,
     })
   )
