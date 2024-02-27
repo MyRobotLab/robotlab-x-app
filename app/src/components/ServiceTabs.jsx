@@ -132,21 +132,28 @@ export default function ServiceTabs() {
         )}
         renderInput={(params) => <TextField {...params} label="Service Name" variant="outlined" />}
       />
-      <Box>
-        <Paper square>
-          <Tabs
-            value={activeTab}
-            indicatorColor="primary"
-            textColor="primary"
-            onChange={changeTab}
-            variant="scrollable"
-            scrollButtons="auto"
-          >
-            {tabKeys.map((key, index) => (
-              <Tab style={{ textTransform: "none" }} label={<ServiceTabLabel service={registry[key]} />} key={index} />
-            ))}
-          </Tabs>
-        </Paper>
+      <Box
+        sx={{
+          flexGrow: 1,
+          bgcolor: "background.paper",
+          display: "flex",
+          "& .MuiTab-root": { alignItems: "flex-start" },
+        }}
+      >
+        {" "}
+        <Tabs
+          value={activeTab}
+          indicatorColor="primary"
+          textColor="primary"
+          onChange={changeTab}
+          orientation="vertical"
+          variant="scrollable"
+          scrollButtons="auto"
+        >
+          {tabKeys.map((key, index) => (
+            <Tab style={{ textTransform: "none" }} label={<ServiceTabLabel service={registry[key]} />} key={index} />
+          ))}
+        </Tabs>
         <div className="tab-panels">
           {tabKeys.map((key, index) => (
             <ServiceTabPanel key={key} value={activeTab} index={index}>
